@@ -46,6 +46,9 @@ void DisplayManager::begin() {
 
     setupLabels();
     setupConnectionIcon();
+
+    // Force initial display update
+    lv_task_handler();
 }
 
 void DisplayManager::setupLabels() {
@@ -63,14 +66,14 @@ void DisplayManager::setupLabels() {
     lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -80);
     lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -40);
     setupPowerBar();
-    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 70);
+    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 60);
 }
 
 void DisplayManager::setupPowerBar() {
     // Create container for power bar and label
     lv_obj_t* cont = lv_obj_create(lv_scr_act());
     lv_obj_set_size(cont, 220, 40);
-    lv_obj_align(cont, LV_ALIGN_CENTER, 0, 20);
+    lv_obj_align(cont, LV_ALIGN_CENTER, 0, 10);
     lv_obj_set_style_border_width(cont, 0, 0);
     lv_obj_set_style_bg_opa(cont, LV_OPA_0, 0);
     lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
@@ -79,7 +82,7 @@ void DisplayManager::setupPowerBar() {
     // Create power bar
     power_bar = lv_bar_create(cont);
     lv_obj_set_size(power_bar, 220, 40);
-    lv_obj_align(power_bar, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(power_bar, LV_ALIGN_CENTER, 0, 00);
     lv_bar_set_value(power_bar, 0, LV_ANIM_ON);
 
 
@@ -105,17 +108,17 @@ void DisplayManager::updatePowerBar(float power) {
     // Adjust range and value based on charging/discharging
     if (power > 0) {
         // Charging mode
-        lv_bar_set_range(power_bar, 0, POWER_BAR_MAX);
+        lv_bar_set_range(power_bar, 0, POWER_BAR_CHARGING_MAX);
         lv_bar_set_value(power_bar, power, LV_ANIM_ON);
         color = lv_color_make(0, 150, 0);      // Green for charging
     } else if (power < 0) {
         // Discharging mode
-        lv_bar_set_range(power_bar, POWER_BAR_MIN, 0);
-        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
+        lv_bar_set_range(power_bar, 0, POWER_BAR_DISCHARGING_MAX);
+        lv_bar_set_value(power_bar, -power, LV_ANIM_ON);
         color = lv_color_make(150, 0, 0);      // Red for discharging
     } else {
         // Zero power: show minimal bar
-        lv_bar_set_range(power_bar, 0, POWER_BAR_MAX);
+        lv_bar_set_range(power_bar, 0, 0);
         lv_bar_set_value(power_bar, power, LV_ANIM_ON);
         color = lv_color_make(100, 100, 100);  // Grey for no power
     }

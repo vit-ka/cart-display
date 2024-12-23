@@ -35,12 +35,17 @@ BmsClient bms(BATTERY_ADDRESS, onBmsData, onConnectionStatus);
 
 void setup() {
     Serial.begin(115200);
+
+    // Initialize display first
     display.begin();
+    display.updateConnectionState(DisplayManager::ConnectionState::Connecting);
+
+    // Then start BLE connection
     bms.begin();
 }
 
 void loop() {
-    bms.update();
-    display.handleTasks();
+    display.handleTasks();  // Handle display updates first
+    bms.update();          // Then handle BLE
     delay(100);
 }

@@ -14,11 +14,19 @@ BmsClient::BmsClient(const char* address, DataCallback dataCallback, StatusCallb
 
 void BmsClient::begin() {
     BLEDevice::init("");
-    connectToServer();
+    // Don't connect immediately - let the UI show up first
+    connected = false;  // Ensure we start disconnected
 }
 
 void BmsClient::update() {
+    static bool first_update = true;
+
+    if (first_update) {
+        first_update = false;
+    }
+
     if (!connected) {
+        statusCallback(ConnectionStatus::Connecting);
         connectToServer();
     } else {
         requestBmsData();
@@ -63,7 +71,6 @@ void BmsClient::connectToServer() {
         pClient = nullptr;
     }
 
-    statusCallback(ConnectionStatus::Connecting);
     pClient = BLEDevice::createClient();
 
     if(pClient->connect(BLEAddress(deviceAddress))) {
