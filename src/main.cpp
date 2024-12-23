@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include "display_manager.hpp"
-#include "bms_client.hpp"
-#include "common_types.hpp"
+#include "display_manager.h"
+#include "bms_client.h"
+#include "common_types.h"
 
 LGFX tft;
 DisplayManager display;

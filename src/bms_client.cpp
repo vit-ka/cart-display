@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include "bms_client.hpp"
-#include "common_types.hpp"
+#include "bms_client.h"
+#include "common_types.h"
 
 BmsClient* BmsClient::instance = nullptr;
 

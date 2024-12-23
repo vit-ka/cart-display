@@ -1,4 +1,4 @@
-#include "display_manager.hpp"
+#include "display_manager.h"
 
 lv_obj_t* DisplayManager::voltage_label = nullptr;
 lv_obj_t* DisplayManager::current_label = nullptr;
