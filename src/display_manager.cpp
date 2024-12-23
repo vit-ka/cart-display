@@ -6,6 +6,8 @@ lv_obj_t* DisplayManager::power_label = nullptr;
 lv_obj_t* DisplayManager::soc_label = nullptr;
 lv_disp_draw_buf_t DisplayManager::draw_buf;
 lv_color_t DisplayManager::buf[2][240 * 10];
+lv_obj_t* DisplayManager::power_bar = nullptr;
+lv_obj_t* DisplayManager::power_bar_label = nullptr;
 
 extern LGFX tft;
 
@@ -52,15 +54,61 @@ void DisplayManager::setupLabels() {
 
     lv_label_set_text(voltage_label, "Voltage: --.-V");
     lv_label_set_text(current_label, "Current: --.-A");
-    lv_label_set_text(power_label, "Power: --.-W");
     lv_label_set_text(soc_label, "SOC: --%");
 
     lv_obj_set_style_text_font(soc_label, &lv_font_montserrat_20, 0);
 
-    lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -60);
-    lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -20);
-    lv_obj_align(power_label, LV_ALIGN_CENTER, 0, 20);
-    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 60);
+    lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -80);
+    lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -40);
+    setupPowerBar();
+    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 80);
+}
+
+void DisplayManager::setupPowerBar() {
+    // Create container for power bar and label
+    lv_obj_t* cont = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(cont, 200, 30);  // Make container tall enough for bar and label
+    lv_obj_align(cont, LV_ALIGN_CENTER, 0, 20);
+    lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);  // Make container transparent
+    lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
+
+    // Create power bar
+    power_bar = lv_bar_create(cont);
+    lv_obj_set_size(power_bar, 200, 15);
+    lv_obj_align(power_bar, LV_ALIGN_BOTTOM_MID, 0, 0);  // Align to bottom of container
+    lv_bar_set_range(power_bar, -4000, 4000);
+    lv_bar_set_value(power_bar, 0, LV_ANIM_OFF);
+
+    lv_obj_set_style_bg_color(power_bar, lv_color_make(40, 40, 40), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(power_bar, lv_color_make(0, 150, 0), LV_PART_INDICATOR);
+
+    // Create label
+    power_bar_label = lv_label_create(cont);
+    lv_label_set_text(power_bar_label, "0 W");
+    lv_obj_align(power_bar_label, LV_ALIGN_TOP_MID, 0, 0);  // Align to top of container
+}
+
+void DisplayManager::updatePowerBar(float power) {
+    lv_bar_set_value(power_bar, power, LV_ANIM_ON);
+
+    // Set color based on power value
+    lv_color_t color;
+    if (power == 0) {
+        color = lv_color_make(100, 100, 100);  // Grey for no power
+    } else if (power > 0) {
+        color = lv_color_make(0, 150, 0);      // Green for charging
+    } else {
+        color = lv_color_make(150, 0, 0);      // Red for discharging
+    }
+    lv_obj_set_style_bg_color(power_bar, color, LV_PART_INDICATOR);
+
+    static char buf[32];
+    if (abs(power) >= 1000) {
+        snprintf(buf, sizeof(buf), "%.2f kW", power/1000);
+    } else {
+        snprintf(buf, sizeof(buf), "%.0f W", power);
+    }
+    lv_label_set_text(power_bar_label, buf);
 }
 
 void DisplayManager::update(float voltage, float current, float power, int soc) {
@@ -72,12 +120,7 @@ void DisplayManager::update(float voltage, float current, float power, int soc) 
     snprintf(buf, sizeof(buf), "Current: %.1fA", current);
     lv_label_set_text(current_label, buf);
 
-    if (abs(power) >= 1000) {
-        snprintf(buf, sizeof(buf), "Power: %.2fkW", power/1000);
-    } else {
-        snprintf(buf, sizeof(buf), "Power: %.1fW", power);
-    }
-    lv_label_set_text(power_label, buf);
+    updatePowerBar(power);
 
     snprintf(buf, sizeof(buf), "SOC: %d%%", soc);
     lv_label_set_text(soc_label, buf);
