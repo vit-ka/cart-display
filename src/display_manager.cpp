@@ -8,6 +8,7 @@ lv_disp_draw_buf_t DisplayManager::draw_buf;
 lv_color_t DisplayManager::buf[2][240 * 10];
 lv_obj_t* DisplayManager::power_bar = nullptr;
 lv_obj_t* DisplayManager::power_bar_label = nullptr;
+lv_obj_t* DisplayManager::connection_icon = nullptr;
 
 extern LGFX tft;
 
@@ -44,6 +45,7 @@ void DisplayManager::begin() {
     lv_obj_set_style_text_color(lv_scr_act(), lv_color_white(), LV_PART_MAIN);
 
     setupLabels();
+    setupConnectionIcon();
 }
 
 void DisplayManager::setupLabels() {
@@ -61,7 +63,7 @@ void DisplayManager::setupLabels() {
     lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -80);
     lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -40);
     setupPowerBar();
-    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 80);
+    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 70);
 }
 
 void DisplayManager::setupPowerBar() {
@@ -150,5 +152,31 @@ void DisplayManager::update(float voltage, float current, float power, int soc) 
         lv_obj_set_style_text_color(soc_label, lv_color_make(0, 255, 0), 0);
     } else {
         lv_obj_set_style_text_color(soc_label, lv_color_white(), 0);
+    }
+}
+
+void DisplayManager::setupConnectionIcon() {
+    connection_icon = lv_label_create(lv_scr_act());
+    lv_obj_set_style_text_font(connection_icon, &lv_font_montserrat_20, 0);
+    lv_obj_set_size(connection_icon, 220, 30);  // Set fixed width for centering
+    lv_obj_set_style_text_align(connection_icon, LV_TEXT_ALIGN_CENTER, 0);  // Center text
+    lv_obj_align(connection_icon, LV_ALIGN_CENTER, 0, 100);
+    lv_label_set_text(connection_icon, "Waiting for connection...");
+}
+
+void DisplayManager::updateConnectionState(ConnectionState state) {
+    switch (state) {
+        case ConnectionState::Disconnected:
+            lv_label_set_text(connection_icon, "Conn. Failed");  // Cross
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 0, 0), 0);
+            break;
+        case ConnectionState::Connecting:
+            lv_label_set_text(connection_icon, "Connecting...");  // Empty circle
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 255, 0), 0);
+            break;
+        case ConnectionState::Connected:
+            lv_label_set_text(connection_icon, "Connected");  // Filled circle
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);
+            break;
     }
 }

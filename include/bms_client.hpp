@@ -12,9 +12,19 @@ public:
         uint16_t soc;
     };
 
-    using DataCallback = std::function<void(const BmsData&)>;
+    enum class ConnectionStatus {
+        Connecting,
+        Connected,
+        ServiceNotFound,
+        CharacteristicsNotFound,
+        DeviceNotFound,
+        Disconnected
+    };
 
-    BmsClient(const char* address, DataCallback callback);
+    using DataCallback = std::function<void(const BmsData&)>;
+    using StatusCallback = std::function<void(ConnectionStatus)>;
+
+    BmsClient(const char* address, DataCallback dataCallback, StatusCallback statusCallback);
     void begin();
     void update();
     bool isConnected() const { return connected; }
@@ -39,4 +49,5 @@ private:
     static constexpr uint8_t CMD_BASIC_INFO = 0x03;
 
     static BmsClient* instance;
+    StatusCallback statusCallback;
 };

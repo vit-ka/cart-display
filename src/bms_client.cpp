@@ -7,8 +7,8 @@ constexpr char BmsClient::CHAR_NOTIFY[];
 constexpr char BmsClient::CHAR_WRITE[];
 constexpr uint8_t BmsClient::CMD_BASIC_INFO;
 
-BmsClient::BmsClient(const char* address, DataCallback callback)
-    : deviceAddress(address), dataCallback(callback) {
+BmsClient::BmsClient(const char* address, DataCallback dataCallback, StatusCallback statusCallback)
+    : deviceAddress(address), dataCallback(dataCallback), statusCallback(statusCallback) {
     instance = this;
 }
 
@@ -63,13 +63,14 @@ void BmsClient::connectToServer() {
         pClient = nullptr;
     }
 
+    statusCallback(ConnectionStatus::Connecting);
     pClient = BLEDevice::createClient();
 
     if(pClient->connect(BLEAddress(deviceAddress))) {
         connected = true;
         pRemoteService = pClient->getService(SERVICE_UUID);
-
         if(pRemoteService == nullptr) {
+            statusCallback(ConnectionStatus::ServiceNotFound);
             connected = false;
             return;
         }
@@ -78,12 +79,16 @@ void BmsClient::connectToServer() {
         pWriteChar = pRemoteService->getCharacteristic(CHAR_WRITE);
 
         if (pNotifyChar == nullptr || pWriteChar == nullptr) {
+            statusCallback(ConnectionStatus::CharacteristicsNotFound);
             connected = false;
             return;
         }
 
         pNotifyChar->registerForNotify(notifyCallback);
+        statusCallback(ConnectionStatus::Connected);
+        connected = true;
     } else {
+        statusCallback(ConnectionStatus::DeviceNotFound);
         connected = false;
     }
 }

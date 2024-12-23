@@ -5,9 +5,16 @@
 
 class DisplayManager {
 public:
+    enum class ConnectionState {
+        Disconnected,
+        Connecting,
+        Connected
+    };
+
     void begin();
     void update(float voltage, float current, float power, int soc);
     void handleTasks() { lv_task_handler(); }
+    void updateConnectionState(ConnectionState state);
 
 private:
     static constexpr int16_t POWER_BAR_MIN = -4000;  // -4kW
@@ -16,6 +23,7 @@ private:
     void setupLabels();
     void setupPowerBar();
     void updatePowerBar(float power);
+    void setupConnectionIcon();
 
     static lv_obj_t *voltage_label;
     static lv_obj_t *current_label;
@@ -23,6 +31,7 @@ private:
     static lv_obj_t *soc_label;
     static lv_obj_t *power_bar;
     static lv_obj_t *power_bar_label;
+    static lv_obj_t *connection_icon;
 
     static void flushDisplay(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
     static lv_disp_draw_buf_t draw_buf;
