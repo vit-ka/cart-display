@@ -66,7 +66,7 @@ void DisplayManager::setupLabels() {
     lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -80);
     lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -40);
     setupPowerBar();
-    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 60);
+    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 55);
 }
 
 void DisplayManager::setupPowerBar() {
@@ -104,28 +104,32 @@ void DisplayManager::setupPowerBar() {
 }
 
 void DisplayManager::updatePowerBar(float power) {
-    lv_color_t color;
-    // Adjust range and value based on charging/discharging
+    lv_color_t barColor, barTextColor;
+    // Adjust range and value based on charging/discharging.
     if (power > 0) {
         // Charging mode
         lv_bar_set_range(power_bar, 0, POWER_BAR_CHARGING_MAX);
         lv_bar_set_value(power_bar, power, LV_ANIM_ON);
-        color = lv_color_make(0, 150, 0);      // Green for charging
+        barColor = lv_color_make(0, 150, 0);      // Green for charging
+        barTextColor = lv_color_white();
     } else if (power < 0) {
         // Discharging mode
         lv_bar_set_range(power_bar, 0, POWER_BAR_DISCHARGING_MAX);
         lv_bar_set_value(power_bar, -power, LV_ANIM_ON);
-        color = lv_color_make(150, 0, 0);      // Red for discharging
+        barColor = lv_color_make(150, 0, 0);      // Red for discharging
+        barTextColor = lv_color_white();
     } else {
         // Zero power: show minimal bar
         lv_bar_set_range(power_bar, 0, 0);
         lv_bar_set_value(power_bar, power, LV_ANIM_ON);
-        color = lv_color_make(100, 100, 100);  // Grey for no power
+        barColor = lv_color_make(100, 100, 100);  // Grey for no power
+        barTextColor = lv_color_make(100,100,100);
     }
 
-    // Set color based on power value
-    lv_obj_set_style_bg_color(power_bar, color, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(power_bar, barColor, LV_PART_INDICATOR);
+    lv_obj_set_style_text_color(power_bar_label, barTextColor, 0);
 
+    // Update text
     static char buf[32];
     if (abs(power) >= 1000) {
         snprintf(buf, sizeof(buf), "%.2f kW", power/1000);
@@ -164,16 +168,12 @@ void DisplayManager::setupConnectionIcon() {
     lv_obj_set_size(connection_icon, 220, 30);
     lv_obj_set_style_text_align(connection_icon, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(connection_icon, LV_ALIGN_CENTER, 0, 100);
-    lv_label_set_text(connection_icon, "Waiting for connection...");
+    lv_label_set_text(connection_icon, "Waiting...");
     lv_obj_set_style_text_color(connection_icon, lv_color_make(100, 100, 100), 0);  // Gray for waiting
 }
 
 void DisplayManager::updateConnectionState(ConnectionState state) {
     switch (state) {
-        case ConnectionState::Disconnected:
-            lv_label_set_text(connection_icon, "Connection Failed");
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 0, 0), 0);  // Bright red
-            break;
         case ConnectionState::Connecting:
             lv_label_set_text(connection_icon, "Connecting...");
             lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 255, 0), 0);  // Bright yellow

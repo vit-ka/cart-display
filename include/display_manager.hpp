@@ -2,15 +2,10 @@
 
 #include <lvgl.h>
 #include "display.hpp"
+#include "common_types.hpp"
 
 class DisplayManager {
 public:
-    enum class ConnectionState {
-        Disconnected,
-        Connecting,
-        Connected
-    };
-
     void begin();
     void update(float voltage, float current, float power, int soc);
     void handleTasks() { lv_task_handler(); }

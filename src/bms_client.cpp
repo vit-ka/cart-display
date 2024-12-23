@@ -1,4 +1,5 @@
 #include "bms_client.hpp"
+#include "common_types.hpp"
 
 BmsClient* BmsClient::instance = nullptr;
 
@@ -14,8 +15,7 @@ BmsClient::BmsClient(const char* address, DataCallback dataCallback, StatusCallb
 
 void BmsClient::begin() {
     BLEDevice::init("");
-    // Don't connect immediately - let the UI show up first
-    connected = false;  // Ensure we start disconnected
+    setConnectionState(ConnectionState::Connecting);
 }
 
 void BmsClient::update() {
@@ -26,9 +26,10 @@ void BmsClient::update() {
     }
 
     if (!connected) {
-        statusCallback(ConnectionStatus::Connecting);
+        setConnectionState(ConnectionState::Connecting);
         connectToServer();
     } else {
+        setConnectionState(ConnectionState::Connected);
         requestBmsData();
     }
 }
@@ -74,11 +75,9 @@ void BmsClient::connectToServer() {
     pClient = BLEDevice::createClient();
 
     if(pClient->connect(BLEAddress(deviceAddress))) {
-        connected = true;
         pRemoteService = pClient->getService(SERVICE_UUID);
         if(pRemoteService == nullptr) {
-            statusCallback(ConnectionStatus::ServiceNotFound);
-            connected = false;
+            setConnectionState(ConnectionState::Connecting);
             return;
         }
 
@@ -86,16 +85,13 @@ void BmsClient::connectToServer() {
         pWriteChar = pRemoteService->getCharacteristic(CHAR_WRITE);
 
         if (pNotifyChar == nullptr || pWriteChar == nullptr) {
-            statusCallback(ConnectionStatus::CharacteristicsNotFound);
-            connected = false;
+            setConnectionState(ConnectionState::Connecting);
             return;
         }
 
         pNotifyChar->registerForNotify(notifyCallback);
-        statusCallback(ConnectionStatus::Connected);
-        connected = true;
+        setConnectionState(ConnectionState::Connected);
     } else {
-        statusCallback(ConnectionStatus::DeviceNotFound);
-        connected = false;
+        setConnectionState(ConnectionState::Connecting);
     }
 }

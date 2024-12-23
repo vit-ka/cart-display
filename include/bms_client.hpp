@@ -2,6 +2,7 @@
 
 #include <BLEDevice.h>
 #include <BLEClient.h>
+#include "common_types.hpp"
 
 class BmsClient {
 public:
@@ -12,17 +13,8 @@ public:
         uint16_t soc;
     };
 
-    enum class ConnectionStatus {
-        Connecting,
-        Connected,
-        ServiceNotFound,
-        CharacteristicsNotFound,
-        DeviceNotFound,
-        Disconnected
-    };
-
     using DataCallback = std::function<void(const BmsData&)>;
-    using StatusCallback = std::function<void(ConnectionStatus)>;
+    using StatusCallback = std::function<void(ConnectionState)>;
 
     BmsClient(const char* address, DataCallback dataCallback, StatusCallback statusCallback);
     void begin();
@@ -50,4 +42,9 @@ private:
 
     static BmsClient* instance;
     StatusCallback statusCallback;
+
+    void setConnectionState(ConnectionState state) {
+        statusCallback(state);
+        connected = state == ConnectionState::Connected;
+    }
 };

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "display_manager.hpp"
 #include "bms_client.hpp"
+#include "common_types.hpp"
 
 LGFX tft;
 DisplayManager display;
@@ -11,22 +12,15 @@ void onBmsData(const BmsClient::BmsData& data) {
     display.update(data.voltage, data.current, data.power, data.soc);
 }
 
-void onConnectionStatus(BmsClient::ConnectionStatus status) {
+void onConnectionStatus(ConnectionState status) {
     switch(status) {
-        case BmsClient::ConnectionStatus::Connecting:
+        case ConnectionState::Connecting:
             Serial.println("Connecting to BMS...");
-            display.updateConnectionState(DisplayManager::ConnectionState::Connecting);
+            display.updateConnectionState(ConnectionState::Connecting);
             break;
-        case BmsClient::ConnectionStatus::Connected:
+        case ConnectionState::Connected:
             Serial.println("Connected to BMS");
-            display.updateConnectionState(DisplayManager::ConnectionState::Connected);
-            break;
-        case BmsClient::ConnectionStatus::ServiceNotFound:
-        case BmsClient::ConnectionStatus::CharacteristicsNotFound:
-        case BmsClient::ConnectionStatus::DeviceNotFound:
-        case BmsClient::ConnectionStatus::Disconnected:
-            Serial.println("Connection failed or lost");
-            display.updateConnectionState(DisplayManager::ConnectionState::Disconnected);
+            display.updateConnectionState(ConnectionState::Connected);
             break;
     }
 }
@@ -38,7 +32,7 @@ void setup() {
 
     // Initialize display first
     display.begin();
-    display.updateConnectionState(DisplayManager::ConnectionState::Connecting);
+    display.updateConnectionState(ConnectionState::Connecting);
 
     // Then start BLE connection
     bms.begin();
