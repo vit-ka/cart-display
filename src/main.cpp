@@ -2,11 +2,17 @@
 #include "display_manager.h"
 #include "bms_client.h"
 #include "common_types.h"
+#include "metrics_averager.h"
 
 #define BATTERY_ADDRESS "a4:c1:37:03:f9:fc"
 
-void onBmsData(const BmsData& data) {
-    DisplayManager::instance().update(data);
+MetricsAverager averager;
+
+void onBmsData(const BmsData& rawData) {
+    uint32_t now = millis();
+    averager.addMetrics(rawData, now);
+    auto avgData = averager.getAverage();
+    DisplayManager::instance().update(avgData);
 }
 
 void onConnectionStatus(ConnectionState status) {

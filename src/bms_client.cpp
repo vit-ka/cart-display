@@ -24,71 +24,13 @@ void BmsClient::setup() {
 }
 
 void BmsClient::update() {
-    static bool first_update = true;
-
-    if (first_update) {
-        first_update = false;
-    }
-
-    if (!connected) {
+    if (!isConnected()) {
         setConnectionState(ConnectionState::Connecting);
         connectToServer();
     } else {
         setConnectionState(ConnectionState::Connected);
         requestBmsData();
     }
-}
-
-void BmsClient::addMetricsToHistory(const BmsData& data) {
-    uint32_t current_time = millis();
-    while (!metrics_history.empty() && current_time - metrics_history.front().timestamp > AVERAGE_WINDOW_MS) {
-        metrics_history.pop_front();
-    }
-
-    PowerMetrics metrics = {
-        .voltage = data.voltage,
-        .current = data.current,
-        .power = data.power,
-        .soc = data.soc,
-        .timestamp = current_time
-    };
-    metrics_history.push_back(metrics);
-}
-
-BmsData BmsClient::calculateAverage() {
-    BmsData avg = {0, 0, 0, 0, 0};
-    if (metrics_history.empty()) return avg;
-
-    float sum_voltage = 0;
-    float sum_current = 0;
-    float sum_power = 0;
-    uint32_t sum_soc = 0;
-    uint32_t sum_latency = 0;
-    uint32_t current_time = millis();
-
-    for (const auto& metrics : metrics_history) {
-        sum_voltage += metrics.voltage;
-        sum_current += metrics.current;
-        sum_power += metrics.power;
-        sum_soc += metrics.soc;
-    }
-
-    size_t count = metrics_history.size();
-    avg.voltage = sum_voltage / count;
-    avg.current = sum_current / count;
-    avg.power = sum_power / count;
-    avg.soc = sum_soc / count;
-
-    // Calculate average latency from last 5 points
-    size_t latency_points = std::min(size_t(5), count);
-    auto it = metrics_history.end();
-    for (size_t i = 0; i < latency_points; ++i) {
-        --it;
-        sum_latency += current_time - it->timestamp;
-    }
-    avg.latency_ms = sum_latency / latency_points;
-
-    return avg;
 }
 
 void BmsClient::decodeBmsData(uint8_t* data, size_t length) {
@@ -103,12 +45,8 @@ void BmsClient::decodeBmsData(uint8_t* data, size_t length) {
                 rawData.soc = (data[8] << 8 | data[9]) / 100;
                 rawData.power = rawData.voltage * rawData.current;
 
-                // Add to history and calculate average
-                addMetricsToHistory(rawData);
-                BmsData avgData = calculateAverage();
-
                 if (dataCallback) {
-                    dataCallback(avgData);
+                    dataCallback(rawData);
                 }
             }
             break;
