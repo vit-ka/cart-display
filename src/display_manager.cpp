@@ -78,7 +78,7 @@ void DisplayManager::setupPowerBar() {
     power_bar = lv_bar_create(cont);
     lv_obj_set_size(power_bar, 220, 40);
     lv_obj_align(power_bar, LV_ALIGN_CENTER, 0, 0);
-    lv_bar_set_range(power_bar, -4000, 4000);
+    lv_bar_set_range(power_bar, POWER_BAR_MIN, POWER_BAR_MAX);
     lv_bar_set_value(power_bar, 0, LV_ANIM_OFF);
 
     lv_obj_set_style_bg_color(power_bar, lv_color_make(40, 40, 40), LV_PART_MAIN);
@@ -95,7 +95,12 @@ void DisplayManager::setupPowerBar() {
 }
 
 void DisplayManager::updatePowerBar(float power) {
-    lv_bar_set_value(power_bar, power, LV_ANIM_ON);
+    // Set bar value (minimum when power is 0)
+    if (power == 0) {
+        lv_bar_set_value(power_bar, POWER_BAR_MIN, LV_ANIM_ON);
+    } else {
+        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
+    }
 
     // Set color based on power value
     lv_color_t color;

@@ -10,6 +10,9 @@ public:
     void handleTasks() { lv_task_handler(); }
 
 private:
+    static constexpr int16_t POWER_BAR_MIN = -4000;  // -4kW
+    static constexpr int16_t POWER_BAR_MAX = 4000;   // +4kW
+
     void setupLabels();
     void setupPowerBar();
     void updatePowerBar(float power);
