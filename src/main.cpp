@@ -2,7 +2,6 @@
 #include <BLEDevice.h>
 #include <BLEClient.h>
 #include <lvgl.h>
-#include <LovyanGFX.hpp>
 #include "display.hpp"
 
 LGFX tft;
