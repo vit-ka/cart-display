@@ -60,6 +60,9 @@ void setup_display() {
     lv_label_set_text(power_label, "Power: --.-W");
     lv_label_set_text(soc_label, "SOC: --%");
 
+    // Make SOC label bigger
+    lv_obj_set_style_text_font(soc_label, &lv_font_montserrat_20, 0);
+
     // Position labels in center
     lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -60);
     lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -20);
@@ -69,14 +72,31 @@ void setup_display() {
 
 void update_display(float voltage, float current, float power, int soc) {
     static char buf[32];
+
     snprintf(buf, sizeof(buf), "Voltage: %.1fV", voltage);
     lv_label_set_text(voltage_label, buf);
+
     snprintf(buf, sizeof(buf), "Current: %.1fA", current);
     lv_label_set_text(current_label, buf);
-    snprintf(buf, sizeof(buf), "Power: %.1fW", power);
+
+    if (abs(power) >= 1000) {
+        snprintf(buf, sizeof(buf), "Power: %.2fkW", power/1000);
+    } else {
+        snprintf(buf, sizeof(buf), "Power: %.1fW", power);
+    }
     lv_label_set_text(power_label, buf);
+
     snprintf(buf, sizeof(buf), "SOC: %d%%", soc);
     lv_label_set_text(soc_label, buf);
+
+    // Set SOC color based on level
+    if (soc <= 15) {
+        lv_obj_set_style_text_color(soc_label, lv_color_make(255, 0, 0), 0);  // Red
+    } else if (soc >= 80) {
+        lv_obj_set_style_text_color(soc_label, lv_color_make(0, 255, 0), 0);  // Green
+    } else {
+        lv_obj_set_style_text_color(soc_label, lv_color_white(), 0);  // White
+    }
 }
 
 void onBmsData(const BmsClient::BmsData& data) {

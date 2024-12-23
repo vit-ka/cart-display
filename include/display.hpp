@@ -1,6 +1,7 @@
 #pragma once
 
 #include <LovyanGFX.hpp>
+#include <SPI.h>
 
 class LGFX : public lgfx::LGFX_Device {
   lgfx::Panel_GC9A01 _panel_instance;
@@ -21,6 +22,10 @@ public:
       cfg.pin_mosi = 7;
       cfg.pin_miso = -1;
       cfg.pin_dc = 2;
+
+      // Initialize SPI bus first
+      SPI.begin(cfg.pin_sclk, cfg.pin_miso, cfg.pin_mosi);
+
       _bus_instance.config(cfg);
       _panel_instance.setBus(&_bus_instance);
     }
