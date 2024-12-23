@@ -67,25 +67,31 @@ void DisplayManager::setupLabels() {
 void DisplayManager::setupPowerBar() {
     // Create container for power bar and label
     lv_obj_t* cont = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(cont, 200, 30);  // Make container tall enough for bar and label
+    lv_obj_set_size(cont, 220, 40);
     lv_obj_align(cont, LV_ALIGN_CENTER, 0, 20);
-    lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);  // Make container transparent
+    lv_obj_set_style_border_width(cont, 0, 0);
+    lv_obj_set_style_bg_opa(cont, LV_OPA_0, 0);
     lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_pad_all(cont, 0, 0);
 
     // Create power bar
     power_bar = lv_bar_create(cont);
-    lv_obj_set_size(power_bar, 200, 15);
-    lv_obj_align(power_bar, LV_ALIGN_BOTTOM_MID, 0, 0);  // Align to bottom of container
+    lv_obj_set_size(power_bar, 220, 40);
+    lv_obj_align(power_bar, LV_ALIGN_CENTER, 0, 0);
     lv_bar_set_range(power_bar, -4000, 4000);
     lv_bar_set_value(power_bar, 0, LV_ANIM_OFF);
 
     lv_obj_set_style_bg_color(power_bar, lv_color_make(40, 40, 40), LV_PART_MAIN);
     lv_obj_set_style_bg_color(power_bar, lv_color_make(0, 150, 0), LV_PART_INDICATOR);
 
-    // Create label
+    // Create label that matches bar size
     power_bar_label = lv_label_create(cont);
     lv_label_set_text(power_bar_label, "0 W");
-    lv_obj_align(power_bar_label, LV_ALIGN_TOP_MID, 0, 0);  // Align to top of container
+    lv_obj_set_style_text_font(power_bar_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_size(power_bar_label, 220, 40);
+    lv_obj_set_style_text_align(power_bar_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(power_bar_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_pad_ver(power_bar_label, 8, 0);
 }
 
 void DisplayManager::updatePowerBar(float power) {
