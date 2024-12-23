@@ -3,43 +3,33 @@
 #include "bms_client.h"
 #include "common_types.h"
 
-LGFX tft;
-DisplayManager display;
-
 #define BATTERY_ADDRESS "a4:c1:37:03:f9:fc"
 
 void onBmsData(const BmsData& data) {
-    display.update(data);
+    DisplayManager::instance().update(data);
 }
 
 void onConnectionStatus(ConnectionState status) {
     switch(status) {
         case ConnectionState::Connecting:
             Serial.println("Connecting to BMS...");
-            display.updateConnectionState(ConnectionState::Connecting);
+            DisplayManager::instance().updateConnectionState(ConnectionState::Connecting);
             break;
         case ConnectionState::Connected:
             Serial.println("Connected to BMS");
-            display.updateConnectionState(ConnectionState::Connected);
+            DisplayManager::instance().updateConnectionState(ConnectionState::Connected);
             break;
     }
 }
 
-BmsClient bms(BATTERY_ADDRESS, onBmsData, onConnectionStatus);
-
 void setup() {
     Serial.begin(115200);
-
-    // Initialize display first
-    display.begin();
-    display.updateConnectionState(ConnectionState::Connecting);
-
-    // Then start BLE connection
-    bms.begin();
+    DisplayManager::instance().setup();
+    BmsClient::instance(BATTERY_ADDRESS, onBmsData, onConnectionStatus).setup();
 }
 
 void loop() {
-    display.handleTasks();  // Handle display updates first
-    bms.update();          // Then handle BLE
+    DisplayManager::instance().handleTasks();
+    BmsClient::instance().update();
     delay(100);
 }

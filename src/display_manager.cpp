@@ -1,16 +1,7 @@
 #include "display_manager.h"
 
-lv_obj_t* DisplayManager::voltage_label = nullptr;
-lv_obj_t* DisplayManager::current_label = nullptr;
-lv_obj_t* DisplayManager::power_label = nullptr;
-lv_obj_t* DisplayManager::soc_label = nullptr;
-lv_disp_draw_buf_t DisplayManager::draw_buf;
-lv_color_t DisplayManager::buf[2][240 * 10];
-lv_obj_t* DisplayManager::power_bar = nullptr;
-lv_obj_t* DisplayManager::power_bar_label = nullptr;
-lv_obj_t* DisplayManager::connection_icon = nullptr;
-
-extern LGFX tft;
+static constexpr int16_t POWER_BAR_DISCHARGING_MAX = 4000;  // 4kW
+static constexpr int16_t POWER_BAR_CHARGING_MAX = 1000;   // 1kW
 
 void DisplayManager::flushDisplay(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     if (tft.getStartCount() == 0) {
@@ -21,7 +12,7 @@ void DisplayManager::flushDisplay(lv_disp_drv_t *disp, const lv_area_t *area, lv
     lv_disp_flush_ready(disp);
 }
 
-void DisplayManager::begin() {
+void DisplayManager::setup() {
     pinMode(3, OUTPUT);
     digitalWrite(3, HIGH);
 
@@ -37,7 +28,8 @@ void DisplayManager::begin() {
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = 240;
     disp_drv.ver_res = 240;
-    disp_drv.flush_cb = flushDisplay;
+    disp_drv.flush_cb = flushDisplayStatic;
+    disp_drv.user_data = this;
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);
 
