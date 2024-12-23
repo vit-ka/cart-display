@@ -24,14 +24,17 @@ void decodeBmsData(uint8_t* data, size_t length) {
     switch(data[1]) {
         case 0x03: // Basic info
             if (length >= 13) {
-                float voltage1 = (data[4] << 8 | data[5]) / 100.0;
-                float current1 = ((int16_t)(data[6] << 8 | data[7])) / 100.0;
-                uint8_t soc1 = data[10];
+                float voltage = (data[4] << 8 | data[5]) / 100.0;
+                float current = ((int16_t)(data[6] << 8 | data[7])) / 100.0;
+                uint8_t soc = data[10];
+                float power = voltage * current;  // Power in Watts
 
-                Serial.println("=== Possible Decodings ===");
-                Serial.printf("Voltage1: %.2fV (original)\n", voltage1);
-                Serial.printf("Current1: %.2fA (original)\n", current1);
-                Serial.printf("SOC1: %d%% (byte 10)\n", soc1);
+                Serial.println("\n=== Battery Status ===");
+                Serial.printf("Voltage: %.1fV\n", voltage);
+                Serial.printf("Current: %.1fA\n", current);
+                Serial.printf("Power: %.1fW\n", power);
+                Serial.printf("SOC: %d%%\n", soc);
+                Serial.println("===================");
             }
             break;
     }
