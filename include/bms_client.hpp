@@ -2,6 +2,7 @@
 
 #include <BLEDevice.h>
 #include <BLEClient.h>
+#include <deque>
 #include "common_types.hpp"
 
 class BmsClient {
@@ -47,4 +48,18 @@ private:
         statusCallback(state);
         connected = state == ConnectionState::Connected;
     }
+
+    // Add averaging support
+    static constexpr uint32_t AVERAGE_WINDOW_MS = 3000;  // 3 seconds in milliseconds
+    struct PowerMetrics {
+        float voltage;
+        float current;
+        float power;
+        uint16_t soc;
+        uint32_t timestamp;
+    };
+    std::deque<PowerMetrics> metrics_history;  // Change to deque for easier removal
+
+    BmsData calculateAverage();
+    void addMetricsToHistory(const BmsData& data);
 };

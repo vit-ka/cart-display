@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "bms_client.hpp"
 #include "common_types.hpp"
 
@@ -40,20 +41,65 @@ void BmsClient::notifyCallback(BLERemoteCharacteristic* pChar, uint8_t* pData, s
     }
 }
 
+void BmsClient::addMetricsToHistory(const BmsData& data) {
+    uint32_t current_time = millis();
+    while (!metrics_history.empty() && current_time - metrics_history.front().timestamp > AVERAGE_WINDOW_MS) {
+        metrics_history.pop_front();
+    }
+
+    PowerMetrics metrics = {
+        .voltage = data.voltage,
+        .current = data.current,
+        .power = data.power,
+        .soc = data.soc,
+        .timestamp = current_time
+    };
+    metrics_history.push_back(metrics);
+}
+
+BmsClient::BmsData BmsClient::calculateAverage() {
+    BmsData avg = {0, 0, 0, 0};
+    if (metrics_history.empty()) return avg;
+
+    float sum_voltage = 0;
+    float sum_current = 0;
+    float sum_power = 0;
+    uint32_t sum_soc = 0;
+
+    for (const auto& metrics : metrics_history) {
+        sum_voltage += metrics.voltage;
+        sum_current += metrics.current;
+        sum_power += metrics.power;
+        sum_soc += metrics.soc;
+    }
+
+    size_t count = metrics_history.size();
+    avg.voltage = sum_voltage / count;
+    avg.current = sum_current / count;
+    avg.power = sum_power / count;
+    avg.soc = sum_soc / count;
+
+    return avg;
+}
+
 void BmsClient::decodeBmsData(uint8_t* data, size_t length) {
     if (length < 4 || data[0] != 0xDD) return;
 
     switch(data[1]) {
         case 0x03:
             if (length >= 13) {
-                BmsData bmsData;
-                bmsData.voltage = (data[4] << 8 | data[5]) / 100.0f;
-                bmsData.current = ((int16_t)(data[6] << 8 | data[7])) / 100.0f;
-                bmsData.soc = (data[8] << 8 | data[9]) / 100;
-                bmsData.power = bmsData.voltage * bmsData.current;
+                BmsData rawData;
+                rawData.voltage = (data[4] << 8 | data[5]) / 100.0f;
+                rawData.current = ((int16_t)(data[6] << 8 | data[7])) / 100.0f;
+                rawData.soc = (data[8] << 8 | data[9]) / 100;
+                rawData.power = rawData.voltage * rawData.current;
+
+                // Add to history and calculate average
+                addMetricsToHistory(rawData);
+                BmsData avgData = calculateAverage();
 
                 if (dataCallback) {
-                    dataCallback(bmsData);
+                    dataCallback(avgData);
                 }
             }
             break;
