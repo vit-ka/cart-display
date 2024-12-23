@@ -57,9 +57,6 @@ private:
     static void notifyCallback(BLERemoteCharacteristic* pChar, uint8_t* pData, size_t length, bool isNotify);
     void connectToServer();
     void requestBmsData();
-    void setConnectionState(ConnectionState state) {
-        statusCallback(state);
-    }
 
     // Data processing methods
     void decodeBmsData(uint8_t* data, size_t length);

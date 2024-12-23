@@ -8,6 +8,7 @@
 
 void onBmsData(const BmsData& rawData) {
   static MetricsAverager averager;
+
   uint32_t now = millis();
   averager.addMetrics(rawData, now);
   auto avgData = averager.getAverage();

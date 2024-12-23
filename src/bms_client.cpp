@@ -20,15 +20,14 @@ BmsClient::BmsClient(const char* address, DataCallback dataCallback, StatusCallb
 
 void BmsClient::setup() {
     BLEDevice::init("");
-    setConnectionState(ConnectionState::Connecting);
+    statusCallback(ConnectionState::Connecting);
 }
 
 void BmsClient::update() {
     if (!isConnected()) {
-        setConnectionState(ConnectionState::Connecting);
+        statusCallback(ConnectionState::Connecting);
         connectToServer();
     } else {
-        setConnectionState(ConnectionState::Connected);
         requestBmsData();
     }
 }
@@ -70,7 +69,7 @@ void BmsClient::connectToServer() {
     if(pClient->connect(BLEAddress(deviceAddress))) {
         pRemoteService = pClient->getService(SERVICE_UUID);
         if(pRemoteService == nullptr) {
-            setConnectionState(ConnectionState::Connecting);
+            statusCallback(ConnectionState::Connecting);
             return;
         }
 
@@ -78,13 +77,13 @@ void BmsClient::connectToServer() {
         pWriteChar = pRemoteService->getCharacteristic(CHAR_WRITE);
 
         if (pNotifyChar == nullptr || pWriteChar == nullptr) {
-            setConnectionState(ConnectionState::Connecting);
+            statusCallback(ConnectionState::Connecting);
             return;
         }
 
         pNotifyChar->registerForNotify(notifyCallback);
-        setConnectionState(ConnectionState::Connected);
+        statusCallback(ConnectionState::Connected);
     } else {
-        setConnectionState(ConnectionState::Connecting);
+        statusCallback(ConnectionState::Connecting);
     }
 }
