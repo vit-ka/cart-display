@@ -35,20 +35,6 @@ void decodeBmsData(uint8_t* data, size_t length) {
                 Serial.println("===================");
             }
             break;
-
-        case 0x05: // SOC details
-            if (length >= 8) {
-                uint16_t fullCapacity = data[4] << 8 | data[5];
-                uint16_t remainingCapacity = data[6] << 8 | data[7];
-                float capacityPercent = (remainingCapacity * 100.0) / fullCapacity;
-
-                Serial.println("\n=== Capacity Info ===");
-                Serial.printf("Full Capacity: %dmAh\n", fullCapacity);
-                Serial.printf("Remaining: %dmAh\n", remainingCapacity);
-                Serial.printf("Percentage: %.1f%%\n", capacityPercent);
-                Serial.println("==================");
-            }
-            break;
     }
 }
 
@@ -65,23 +51,7 @@ static void notifyCallback(BLERemoteCharacteristic* pChar, uint8_t* pData, size_
 void requestBmsData() {
     if (pWriteChar == nullptr) return;
 
-    static uint8_t currentCmd = CMD_BASIC_INFO;
-    uint8_t cmd[7] = {0xDD, 0xA5, 0x00, 0x00, 0xFF, 0x00, 0x77};
-
-    switch(currentCmd) {
-        case CMD_BASIC_INFO:
-            cmd[2] = CMD_BASIC_INFO;
-            cmd[5] = 0xFD;
-            currentCmd = CMD_SOC_INFO;
-            break;
-
-        case CMD_SOC_INFO:
-            cmd[2] = CMD_SOC_INFO;
-            cmd[5] = 0xFF;
-            currentCmd = CMD_BASIC_INFO;
-            break;
-    }
-
+    uint8_t cmd[7] = {0xDD, 0xA5, CMD_BASIC_INFO, 0x00, 0xFF, 0xFD, 0x77};
     pWriteChar->writeValue(cmd, sizeof(cmd));
 }
 
