@@ -157,26 +157,27 @@ void DisplayManager::update(float voltage, float current, float power, int soc) 
 
 void DisplayManager::setupConnectionIcon() {
     connection_icon = lv_label_create(lv_scr_act());
-    lv_obj_set_style_text_font(connection_icon, &lv_font_montserrat_20, 0);
-    lv_obj_set_size(connection_icon, 220, 30);  // Set fixed width for centering
-    lv_obj_set_style_text_align(connection_icon, LV_TEXT_ALIGN_CENTER, 0);  // Center text
+    lv_obj_set_style_text_font(connection_icon, &lv_font_montserrat_14, 0);
+    lv_obj_set_size(connection_icon, 220, 30);
+    lv_obj_set_style_text_align(connection_icon, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(connection_icon, LV_ALIGN_CENTER, 0, 100);
     lv_label_set_text(connection_icon, "Waiting for connection...");
+    lv_obj_set_style_text_color(connection_icon, lv_color_make(100, 100, 100), 0);  // Gray for waiting
 }
 
 void DisplayManager::updateConnectionState(ConnectionState state) {
     switch (state) {
         case ConnectionState::Disconnected:
-            lv_label_set_text(connection_icon, "Conn. Failed");  // Cross
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 0, 0), 0);
+            lv_label_set_text(connection_icon, "Connection Failed");
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 0, 0), 0);  // Bright red
             break;
         case ConnectionState::Connecting:
-            lv_label_set_text(connection_icon, "Connecting...");  // Empty circle
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 255, 0), 0);
+            lv_label_set_text(connection_icon, "Connecting...");
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 255, 0), 0);  // Bright yellow
             break;
         case ConnectionState::Connected:
-            lv_label_set_text(connection_icon, "Connected");  // Filled circle
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);
+            lv_label_set_text(connection_icon, "Connected");
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);  // Bright green
             break;
     }
 }
