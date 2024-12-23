@@ -12,8 +12,8 @@ public:
     void updateConnectionState(ConnectionState state);
 
 private:
-    static constexpr int16_t POWER_BAR_DISCHARGING_MAX = -8000;  // -8kW
-    static constexpr int16_t POWER_BAR_CHARGING_MAX = 4000;   // +4kW
+    static constexpr int16_t POWER_BAR_DISCHARGING_MAX = 8000;  // 8kW
+    static constexpr int16_t POWER_BAR_CHARGING_MAX = 4000;   // 4kW
 
     void setupLabels();
     void setupPowerBar();
