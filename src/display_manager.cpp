@@ -78,39 +78,44 @@ void DisplayManager::setupPowerBar() {
     power_bar = lv_bar_create(cont);
     lv_obj_set_size(power_bar, 220, 40);
     lv_obj_align(power_bar, LV_ALIGN_CENTER, 0, 0);
-    lv_bar_set_range(power_bar, POWER_BAR_MIN, POWER_BAR_MAX);
-    lv_bar_set_value(power_bar, 0, LV_ANIM_OFF);
+    lv_bar_set_value(power_bar, 0, LV_ANIM_ON);
 
+
+    // Style for background
     lv_obj_set_style_bg_color(power_bar, lv_color_make(40, 40, 40), LV_PART_MAIN);
+
+    // Style for indicator
     lv_obj_set_style_bg_color(power_bar, lv_color_make(0, 150, 0), LV_PART_INDICATOR);
+    lv_obj_set_style_anim_time(power_bar, 400, LV_PART_INDICATOR);  // Animation duration
 
     // Create label that matches bar size
     power_bar_label = lv_label_create(cont);
-    lv_label_set_text(power_bar_label, "0 W");
     lv_obj_set_style_text_font(power_bar_label, &lv_font_montserrat_20, 0);
     lv_obj_set_size(power_bar_label, 220, 40);
     lv_obj_set_style_text_align(power_bar_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(power_bar_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_pad_ver(power_bar_label, 8, 0);
+    lv_label_set_text(power_bar_label, "0 W");
 }
 
 void DisplayManager::updatePowerBar(float power) {
-    // Set bar value (minimum when power is 0)
-    if (power == 0) {
-        lv_bar_set_value(power_bar, POWER_BAR_MIN, LV_ANIM_ON);
+    lv_color_t color;
+    // Adjust range and value based on charging/discharging
+    if (power > 0) {
+        // Charging mode
+        lv_bar_set_range(power_bar, 0, POWER_BAR_MAX);
+        color = lv_color_make(0, 150, 0);      // Green for charging
+    } else if (power < 0) {
+        // Discharging mode
+        lv_bar_set_range(power_bar, POWER_BAR_MIN, 0);
+        color = lv_color_make(150, 0, 0);      // Red for discharging
     } else {
-        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
+        // Zero power: show minimal bar
+        lv_bar_set_range(power_bar, 0, POWER_BAR_MAX);
+        color = lv_color_make(100, 100, 100);  // Grey for no power
     }
 
     // Set color based on power value
-    lv_color_t color;
-    if (power == 0) {
-        color = lv_color_make(100, 100, 100);  // Grey for no power
-    } else if (power > 0) {
-        color = lv_color_make(0, 150, 0);      // Green for charging
-    } else {
-        color = lv_color_make(150, 0, 0);      // Red for discharging
-    }
     lv_obj_set_style_bg_color(power_bar, color, LV_PART_INDICATOR);
 
     static char buf[32];
