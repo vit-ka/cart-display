@@ -104,14 +104,17 @@ void DisplayManager::updatePowerBar(float power) {
     if (power > 0) {
         // Charging mode
         lv_bar_set_range(power_bar, 0, POWER_BAR_MAX);
+        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
         color = lv_color_make(0, 150, 0);      // Green for charging
     } else if (power < 0) {
         // Discharging mode
         lv_bar_set_range(power_bar, POWER_BAR_MIN, 0);
+        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
         color = lv_color_make(150, 0, 0);      // Red for discharging
     } else {
         // Zero power: show minimal bar
         lv_bar_set_range(power_bar, 0, POWER_BAR_MAX);
+        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
         color = lv_color_make(100, 100, 100);  // Grey for no power
     }
 
