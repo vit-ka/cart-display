@@ -57,14 +57,16 @@ void BmsClient::addMetricsToHistory(const BmsData& data) {
     metrics_history.push_back(metrics);
 }
 
-BmsClient::BmsData BmsClient::calculateAverage() {
-    BmsData avg = {0, 0, 0, 0};
+BmsData BmsClient::calculateAverage() {
+    BmsData avg = {0, 0, 0, 0, 0};
     if (metrics_history.empty()) return avg;
 
     float sum_voltage = 0;
     float sum_current = 0;
     float sum_power = 0;
     uint32_t sum_soc = 0;
+    uint32_t sum_latency = 0;
+    uint32_t current_time = millis();
 
     for (const auto& metrics : metrics_history) {
         sum_voltage += metrics.voltage;
@@ -78,6 +80,15 @@ BmsClient::BmsData BmsClient::calculateAverage() {
     avg.current = sum_current / count;
     avg.power = sum_power / count;
     avg.soc = sum_soc / count;
+
+    // Calculate average latency from last 5 points
+    size_t latency_points = std::min(size_t(5), count);
+    auto it = metrics_history.end();
+    for (size_t i = 0; i < latency_points; ++i) {
+        --it;
+        sum_latency += current_time - it->timestamp;
+    }
+    avg.latency_ms = sum_latency / latency_points;
 
     return avg;
 }

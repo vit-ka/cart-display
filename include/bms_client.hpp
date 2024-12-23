@@ -7,14 +7,6 @@
 
 class BmsClient {
 public:
-    // Data structures
-    struct BmsData {
-        float voltage;
-        float current;
-        float power;
-        uint16_t soc;
-    };
-
     // Callback types
     using DataCallback = std::function<void(const BmsData&)>;
     using StatusCallback = std::function<void(ConnectionState)>;

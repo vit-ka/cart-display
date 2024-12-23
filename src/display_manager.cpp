@@ -103,25 +103,25 @@ void DisplayManager::setupPowerBar() {
     lv_label_set_text(power_bar_label, "0 W");
 }
 
-void DisplayManager::updatePowerBar(float power) {
+void DisplayManager::updatePowerBar(const BmsData& data) {
     lv_color_t barColor, barTextColor;
     // Adjust range and value based on charging/discharging.
-    if (power > 0) {
+    if (data.power > 0) {
         // Charging mode
         lv_bar_set_range(power_bar, 0, POWER_BAR_CHARGING_MAX);
-        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
+        lv_bar_set_value(power_bar, data.power, LV_ANIM_ON);
         barColor = lv_color_make(0, 150, 0);      // Green for charging
         barTextColor = lv_color_white();
-    } else if (power < 0) {
+    } else if (data.power < 0) {
         // Discharging mode
         lv_bar_set_range(power_bar, 0, POWER_BAR_DISCHARGING_MAX);
-        lv_bar_set_value(power_bar, -power, LV_ANIM_ON);
+        lv_bar_set_value(power_bar, -data.power, LV_ANIM_ON);
         barColor = lv_color_make(150, 0, 0);      // Red for discharging
         barTextColor = lv_color_white();
     } else {
         // Zero power: show minimal bar
         lv_bar_set_range(power_bar, 0, 0);
-        lv_bar_set_value(power_bar, power, LV_ANIM_ON);
+        lv_bar_set_value(power_bar, data.power, LV_ANIM_ON);
         barColor = lv_color_make(100, 100, 100);  // Grey for no power
         barTextColor = lv_color_make(100,100,100);
     }
@@ -131,34 +131,42 @@ void DisplayManager::updatePowerBar(float power) {
 
     // Update text
     static char buf[32];
-    if (abs(power) >= 1000) {
-        snprintf(buf, sizeof(buf), "%.2f kW", power/1000);
+    if (abs(data.power) >= 1000) {
+        snprintf(buf, sizeof(buf), "%.2f kW", data.power/1000);
     } else {
-        snprintf(buf, sizeof(buf), "%.0f W", power);
+        snprintf(buf, sizeof(buf), "%.0f W", data.power);
     }
     lv_label_set_text(power_bar_label, buf);
 }
 
-void DisplayManager::update(float voltage, float current, float power, int soc) {
+void DisplayManager::update(const BmsData& data) {
     static char buf[32];
 
-    snprintf(buf, sizeof(buf), "Voltage: %.1fV", voltage);
+    snprintf(buf, sizeof(buf), "Voltage: %.1fV", data.voltage);
     lv_label_set_text(voltage_label, buf);
 
-    snprintf(buf, sizeof(buf), "Current: %.1fA", current);
+    snprintf(buf, sizeof(buf), "Current: %.1fA", data.current);
     lv_label_set_text(current_label, buf);
 
-    updatePowerBar(power);
+    updatePowerBar(data);
 
-    snprintf(buf, sizeof(buf), "SOC: %d%%", soc);
+    snprintf(buf, sizeof(buf), "SOC: %d%%", data.soc);
     lv_label_set_text(soc_label, buf);
 
-    if (soc <= 15) {
+    if (data.soc <= 15) {
         lv_obj_set_style_text_color(soc_label, lv_color_make(255, 0, 0), 0);
-    } else if (soc >= 80) {
+    } else if (data.soc >= 80) {
         lv_obj_set_style_text_color(soc_label, lv_color_make(0, 255, 0), 0);
     } else {
         lv_obj_set_style_text_color(soc_label, lv_color_white(), 0);
+    }
+
+    // Update connection status with latency
+    if (data.latency_ms > 0) {
+        static char buf[32];
+        snprintf(buf, sizeof(buf), "Connected (%dms)", data.latency_ms);
+        lv_label_set_text(connection_icon, buf);
+        lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);
     }
 }
 
@@ -176,11 +184,11 @@ void DisplayManager::updateConnectionState(ConnectionState state) {
     switch (state) {
         case ConnectionState::Connecting:
             lv_label_set_text(connection_icon, "Connecting...");
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 255, 0), 0);  // Bright yellow
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 255, 0), 0);
             break;
         case ConnectionState::Connected:
-            lv_label_set_text(connection_icon, "Connected");
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);  // Bright green
+            lv_label_set_text(connection_icon, "Connected");  // Initial connected state, will be updated with latency
+            lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);
             break;
     }
 }

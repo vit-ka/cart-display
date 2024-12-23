@@ -7,7 +7,7 @@
 class DisplayManager {
 public:
     void begin();
-    void update(float voltage, float current, float power, int soc);
+    void update(const BmsData& data);
     void handleTasks() { lv_task_handler(); }
     void updateConnectionState(ConnectionState state);
 
@@ -17,7 +17,7 @@ private:
 
     void setupLabels();
     void setupPowerBar();
-    void updatePowerBar(float power);
+    void updatePowerBar(const BmsData& data);
     void setupConnectionIcon();
 
     static lv_obj_t *voltage_label;
