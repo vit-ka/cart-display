@@ -6,13 +6,12 @@
 
 #define BATTERY_ADDRESS "a4:c1:37:03:f9:fc"
 
-MetricsAverager averager;
-
 void onBmsData(const BmsData& rawData) {
-    uint32_t now = millis();
-    averager.addMetrics(rawData, now);
-    auto avgData = averager.getAverage();
-    DisplayManager::instance().update(avgData);
+  static MetricsAverager averager;
+  uint32_t now = millis();
+  averager.addMetrics(rawData, now);
+  auto avgData = averager.getAverage();
+  DisplayManager::instance().update(avgData);
 }
 
 void onConnectionStatus(ConnectionState status) {
