@@ -42,7 +42,11 @@
 #define LV_THEME_DEFAULT_GROW 1
 
 #define LV_USE_LOG 0
-#define LV_USE_ASSERT_NULL 1
+#define LV_USE_ASSERT_NULL 0
+#define LV_USE_ASSERT_MEM 0
+#define LV_USE_ASSERT_STR 0
+#define LV_USE_ASSERT_OBJ 0
+#define LV_USE_ASSERT_STYLE 0
 #define LV_USE_USER_DATA 1
 
 #endif

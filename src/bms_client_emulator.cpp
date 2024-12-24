@@ -10,6 +10,10 @@ static constexpr float MIN_VOLTAGE = 42.0f;
 static constexpr float MAX_VOLTAGE = 54.6f;
 static constexpr float BATTERY_CAPACITY_AH = 100.0f;
 
+// Simulate disconnections every 10 seconds
+static constexpr uint32_t DISCONNECT_INTERVAL = 10000;  // 10 seconds
+static constexpr uint32_t DISCONNECT_DURATION = 2000;   // 2 seconds
+
 
 void BmsClientEmulator::setup() {
     lastUpdate = millis();
@@ -18,7 +22,21 @@ void BmsClientEmulator::setup() {
 
 void BmsClientEmulator::update() {
     uint32_t now = millis();
-    if (now - lastUpdate >= 100) {  // Update every 100ms for faster response
+
+    uint32_t cycleTime = now % (DISCONNECT_INTERVAL + DISCONNECT_DURATION);
+    bool shouldBeConnected = cycleTime < DISCONNECT_INTERVAL;
+
+    if (shouldBeConnected != isConnected()) {
+        if (shouldBeConnected) {
+            statusCallback(ConnectionState::Connected);
+        } else {
+            statusCallback(ConnectionState::Connecting);
+        }
+        connected = shouldBeConnected;
+    }
+
+    // Only send data when connected
+    if (connected && now - lastUpdate >= 100) {
         simulateBatteryBehavior();
         lastUpdate = now;
     }
@@ -26,6 +44,8 @@ void BmsClientEmulator::update() {
 
 void BmsClientEmulator::simulateBatteryBehavior() {
     static float time = 0;
+    static bool inRegenState = false;
+    static uint32_t regenStartTime = 0;
     time += 0.5f;
 
     uint32_t now = millis();
@@ -36,11 +56,27 @@ void BmsClientEmulator::simulateBatteryBehavior() {
     float baseWave = -0.2f - 0.1f * sin(time * 0.5f);
     float randomNoise = (random(100) - 50) / 300.0f;
 
-    if (random(100) < 15) {
-        randomNoise = 0.15f + random(20) / 200.0f;
+    // Handle regenerative braking state
+    if (!inRegenState && random(100) < 3) {  // 3% chance to start regen
+        inRegenState = true;
+        regenStartTime = now;
+        baseWave = 0.3f;  // Strong initial regen
+        Serial.println("=== Starting Regen ===");
+    } else if (inRegenState) {
+        if (now - regenStartTime < 2000) {  // Maintain regen for 2 seconds
+            baseWave = 0.3f - (now - regenStartTime) / 8000.0f;  // Gradually decrease regen
+            Serial.printf("Regen: %.1f%% (%.1f ms)\n",
+                        baseWave * 100.0f,
+                        now - regenStartTime);
+        } else {
+            inRegenState = false;
+            Serial.println("=== Regen Complete ===");
+        }
     }
-    if (random(100) < 3) {
-        baseWave = 0.1f;
+
+    // Add acceleration spikes only when not in regen
+    if (!inRegenState && random(100) < 15) {
+        randomNoise = 0.15f + random(20) / 200.0f;
     }
 
     // Calculate base current

@@ -13,7 +13,7 @@ public:
 
     void setup() override;
     void update() override;
-    bool isConnected() const override { return true; }
+    bool isConnected() const override { return connected; }
 
 private:
     BmsClientEmulator(DataCallback dataCallback, StatusCallback statusCallback)
@@ -34,6 +34,7 @@ private:
     static constexpr float MIN_VOLTAGE = 42.0f;   // 42V min
     static constexpr float MAX_VOLTAGE = 54.6f;   // 54.6V max
 
+    bool connected = false;  // Track connection state
     uint32_t lastUpdate = 0;
     void simulateBatteryBehavior();
 

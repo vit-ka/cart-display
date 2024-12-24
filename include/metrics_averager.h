@@ -6,7 +6,7 @@
 
 class MetricsAverager {
    public:
-    static constexpr uint32_t AVERAGE_WINDOW_MS = 3000;  // 3 seconds
+    static constexpr uint32_t AVERAGE_WINDOW_MS = 1000;  // 1 second
 
     void addMetrics(const BmsData& data, uint32_t timestamp);
     BmsData getAverage() const;

@@ -63,7 +63,7 @@ void DisplayManager::setupLabels() {
 
     lv_obj_align(metrics_label, LV_ALIGN_CENTER, 0, -70);
     setupPowerBar();
-    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, -30);
+    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, -35);
     lv_obj_align(connection_label, LV_ALIGN_CENTER, 0, 80);
     lv_obj_align(latency_label, LV_ALIGN_CENTER, 0, 100);
 }
