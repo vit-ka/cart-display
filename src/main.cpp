@@ -2,8 +2,6 @@
 #include "display_manager.h"
 #include "metrics_averager.h"
 
-// Choose between real and emulated client
-#define USE_EMULATOR
 #ifdef USE_EMULATOR
 #include "bms_client_emulator.h"
 using BmsClientType = BmsClientEmulator;
