@@ -5,7 +5,7 @@
 #include "display_manager.h"
 #include "metrics_averager.h"
 
-#define BATTERY_ADDRESS "a4:c1:37:03:f9:fc"
+static constexpr const char *BATTERY_ADDRESS = "a4:c1:37:03:f9:fc";
 
 void onBmsData(const BmsData &rawData) {
     static MetricsAverager averager;
