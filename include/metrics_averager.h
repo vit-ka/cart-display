@@ -1,15 +1,13 @@
 #pragma once
-
 #include <deque>
+#include <type_traits>
 
 #include "common_types.h"
 
 class MetricsAverager {
    public:
-    static constexpr uint32_t AVERAGE_WINDOW_MS = 1000;  // 1 second
-
     void addMetrics(const BmsData& data, uint32_t timestamp);
-    BmsData getAverage() const;
+    [[nodiscard]] BmsData getAverage() const;
 
    private:
     struct MetricsPoint {
@@ -19,5 +17,17 @@ class MetricsAverager {
         uint16_t soc;
         uint32_t timestamp;
     };
+
+    template <typename T, typename Selector>
+    [[nodiscard]] static constexpr T average(const std::deque<MetricsPoint>& range, Selector selector) {
+        if (range.empty()) return T{};
+
+        T sum{};
+        for (const auto& point : range) {
+            sum += selector(point);
+        }
+        return sum / static_cast<T>(range.size());
+    }
+
     std::deque<MetricsPoint> history;
 };
