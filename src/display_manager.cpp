@@ -47,25 +47,32 @@ void DisplayManager::setupLabels() {
     soc_label = lv_label_create(lv_scr_act());
     connection_label = lv_label_create(lv_scr_act());
     latency_label = lv_label_create(lv_scr_act());
+    time_to_full_label = lv_label_create(lv_scr_act());
 
     lv_label_set_text(metrics_label, "0.0V  |  0.0A");
     lv_label_set_text(soc_label, "Charge: --%");
     lv_label_set_text(connection_label, "Waiting...");
     lv_label_set_text(latency_label, "Latency: --ms");
+    lv_label_set_text(time_to_full_label, "Full in --h --m");
 
     lv_obj_set_style_text_font(metrics_label, &lv_font_dejavu_16_persian_hebrew, 0);
     lv_obj_set_style_text_font(soc_label, &lv_font_montserrat_20, 0);
     lv_obj_set_style_text_font(connection_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_font(latency_label, &lv_font_montserrat_10, 0);
+    lv_obj_set_style_text_font(time_to_full_label, &lv_font_montserrat_10, 0);
 
     lv_obj_set_style_text_color(metrics_label, lv_color_make(140, 140, 140), 0);
     lv_obj_set_style_text_color(connection_label, lv_color_make(100, 100, 100), 0);
+    lv_obj_set_style_text_color(time_to_full_label, lv_color_make(0, 200, 0), 0);
 
     lv_obj_align(metrics_label, LV_ALIGN_CENTER, 0, -70);
     setupPowerBar();
     lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, -35);
+    lv_obj_align(time_to_full_label, LV_ALIGN_CENTER, 0, -15);
     lv_obj_align(connection_label, LV_ALIGN_CENTER, 0, 80);
     lv_obj_align(latency_label, LV_ALIGN_CENTER, 0, 100);
+
+    lv_obj_add_flag(time_to_full_label, LV_OBJ_FLAG_HIDDEN);
 }
 
 void DisplayManager::setupPowerBar() {
@@ -161,6 +168,24 @@ void DisplayManager::update(const BmsData &data) {
         snprintf(buf, sizeof(buf), "Latency: %dms", data.latency_ms);
         lv_label_set_text(latency_label, buf);
         lv_obj_set_style_text_color(latency_label, lv_color_make(0, 255, 0), 0);
+    }
+
+    // Update time to full if available
+    if (data.time_to_full_s > 0) {
+        static char buf[32];
+        uint32_t hours = data.time_to_full_s / 3600;
+        uint32_t minutes = (data.time_to_full_s % 3600) / 60;
+
+        if (hours > 0) {
+            snprintf(buf, sizeof(buf), "Full in %dh %dm", hours, minutes);
+        } else {
+            snprintf(buf, sizeof(buf), "Full in %dm", minutes);
+        }
+
+        lv_label_set_text(time_to_full_label, buf);
+        lv_obj_clear_flag(time_to_full_label, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(time_to_full_label, LV_OBJ_FLAG_HIDDEN);
     }
 }
 

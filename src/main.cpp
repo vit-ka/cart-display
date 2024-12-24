@@ -22,12 +22,11 @@ void onBmsData(const BmsData& rawData) {
     auto avgData = averager.getAverage();
 
     chargeEstimator.update(avgData, now);
-    if (chargeEstimator.isEstimating()) {
-        Serial.printf("Time to full charge: %d minutes\n",
-                     chargeEstimator.getTimeToFullCharge() / 60);
-    }
 
-    DisplayManager::instance().update(avgData);
+    BmsData displayData = avgData;
+    displayData.time_to_full_s = chargeEstimator.isEstimating() ? chargeEstimator.getTimeToFullCharge() : 0 ;
+
+    DisplayManager::instance().update(displayData);
 }
 
 void onConnectionStatus(ConnectionState status) {

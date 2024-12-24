@@ -41,6 +41,7 @@ class DisplayManager {
     lv_obj_t *power_bar_label = nullptr;
     lv_obj_t *connection_label = nullptr;
     lv_obj_t *latency_label = nullptr;
+    lv_obj_t *time_to_full_label = nullptr;
 
     // Display buffer
     lv_disp_draw_buf_t draw_buf;
