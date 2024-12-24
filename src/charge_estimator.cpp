@@ -21,29 +21,41 @@ void ChargeEstimator::update(const BmsData& data, uint32_t timestamp) {
             avg_charge_current = avg_charge_current * (1.0f - CHARGE_MA_FACTOR) +
                                data.current * CHARGE_MA_FACTOR;
 
-            // Calculate actual SOC change rate (percent per hour)
+            // Calculate SOC-based rate (percent per hour)
             float time_delta_h = (timestamp - last_update_ms) / 1000.0f / 3600.0f;
             if (time_delta_h > 0) {
                 float instantaneous_rate = (data.soc - last_soc) / time_delta_h;
 
-                // Update running average of charge rate
+                // Update running average of SOC-based rate
                 if (avg_charge_rate == 0.0f) {
                     avg_charge_rate = instantaneous_rate;
                 } else {
                     avg_charge_rate = avg_charge_rate * (1.0f - RATE_MA_FACTOR) +
                                     instantaneous_rate * RATE_MA_FACTOR;
                 }
-
-                // Calculate time to full using actual charge rate
-                if (avg_charge_rate > 0) {
-                    float remaining_soc = 100.0f - data.soc;
-                    float hours_to_full = remaining_soc / avg_charge_rate;
-                    time_to_full_s = hours_to_full * 3600;
-
-                    Serial.printf("Charge Rate: %.2f%%/h, Current: %.1fA, Est. Time: %.1fh\n",
-                                avg_charge_rate, avg_charge_current, hours_to_full);
-                }
             }
+
+            // Calculate time to full using both methods
+            float remaining_soc = 100.0f - data.soc;
+            float hours_to_full;
+
+            if (avg_charge_rate > 0.1f) {
+                // If we have meaningful SOC rate, use weighted average of both methods
+                float current_based_hours = (remaining_soc * BATTERY_CAPACITY_AH/100.0f) / avg_charge_current;
+                float soc_based_hours = remaining_soc / avg_charge_rate;
+
+                // Weight more towards SOC-based as time progresses
+                float soc_weight = std::min(charging_duration_ms / 60000.0f, 0.8f);  // Max 80% weight after 1 minute
+                hours_to_full = soc_based_hours * soc_weight + current_based_hours * (1.0f - soc_weight);
+            } else {
+                // Initially use current-based estimation
+                hours_to_full = (remaining_soc * BATTERY_CAPACITY_AH/100.0f) / avg_charge_current;
+            }
+
+            time_to_full_s = hours_to_full * 3600;
+
+            Serial.printf("Charge Stats: Rate=%.2f%%/h, Current=%.1fA, Time=%.1fh\n",
+                         avg_charge_rate, avg_charge_current, hours_to_full);
         }
     } else {
         // Reset when not charging
