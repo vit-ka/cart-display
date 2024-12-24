@@ -18,7 +18,9 @@ BmsClient::BmsClient(const char *address, DataCallback dataCallback, StatusCallb
     : deviceAddress(address), dataCallback(dataCallback), statusCallback(statusCallback) {}
 
 void BmsClient::setup() {
+    Serial.println("BmsClient: Starting setup...");
     BLEDevice::init("");
+    Serial.println("BmsClient: BLE initialized");
     statusCallback(ConnectionState::Connecting);
 }
 
@@ -58,31 +60,43 @@ void BmsClient::requestBmsData() {
 }
 
 void BmsClient::connectToServer() {
+    Serial.println("BmsClient: Attempting to connect...");
+
     if (pClient != nullptr) {
+        Serial.println("BmsClient: Cleaning up old client");
         delete pClient;
         pClient = nullptr;
     }
 
     pClient = BLEDevice::createClient();
+    Serial.println("BmsClient: Client created");
 
     if (pClient->connect(BLEAddress(deviceAddress))) {
+        Serial.println("BmsClient: Connected to server");
+
         pRemoteService = pClient->getService(SERVICE_UUID);
         if (pRemoteService == nullptr) {
+            Serial.println("BmsClient: Failed to find service");
             statusCallback(ConnectionState::Connecting);
             return;
         }
+        Serial.println("BmsClient: Found service");
 
         pNotifyChar = pRemoteService->getCharacteristic(CHAR_NOTIFY);
         pWriteChar = pRemoteService->getCharacteristic(CHAR_WRITE);
 
         if (pNotifyChar == nullptr || pWriteChar == nullptr) {
+            Serial.println("BmsClient: Failed to find characteristics");
             statusCallback(ConnectionState::Connecting);
             return;
         }
+        Serial.println("BmsClient: Found characteristics");
 
         pNotifyChar->registerForNotify(notifyCallback);
+        Serial.println("BmsClient: Registered for notifications");
         statusCallback(ConnectionState::Connected);
     } else {
+        Serial.println("BmsClient: Failed to connect");
         statusCallback(ConnectionState::Connecting);
     }
 }

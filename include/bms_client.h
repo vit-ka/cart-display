@@ -1,9 +1,10 @@
 #pragma once
 #include "bms_interface.h"
-#include <BLEClient.h>
-#include <BLEDevice.h>
 
 #include <deque>
+
+#include <BLEClient.h>
+#include <BLEDevice.h>
 
 #include "common_types.h"
 

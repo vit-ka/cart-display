@@ -1,6 +1,8 @@
 #include "charge_estimator.h"
 #include <Arduino.h>
 
+static constexpr float BATTERY_CAPACITY_AH = 100.0f;
+
 void ChargeEstimator::update(const BmsData& data, uint32_t timestamp) {
     bool is_charging = data.current > 0;
 
