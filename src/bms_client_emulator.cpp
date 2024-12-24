@@ -54,7 +54,7 @@ void BmsClientEmulator::simulateBatteryBehavior() {
 
 #ifdef EMULATE_OUTLET_CHARGING
     // Simulate constant charging with small variations
-    float randomNoise = (random(100) - 50) / 500.0f;  // ±0.1A variation
+    float randomNoise = (random(100) - 50) / 500.0f;
     current = OUTLET_CHARGING_CURRENT + randomNoise;
 
     // Calculate voltage based on SOC and current
@@ -66,6 +66,9 @@ void BmsClientEmulator::simulateBatteryBehavior() {
 
     // Accumulate amp-hours (positive current = charging)
     accumulatedAmpHours += current * timeStep;
+
+    // Calculate SOC for charging mode
+    soc = 100.0f * (accumulatedAmpHours / BATTERY_CAPACITY_AH);
 #else
     // Driving/regen behavior
     float baseWave = -0.2f - 0.1f * sin(time * 0.5f);
@@ -108,9 +111,11 @@ void BmsClientEmulator::simulateBatteryBehavior() {
 
     // Accumulate amp-hours (negative current = discharge)
     accumulatedAmpHours -= current * timeStep;
-#endif
-    // Calculate SOC based on accumulated amp-hours
+
+    // Calculate SOC for driving mode
     soc = 100.0f * (1.0f - (accumulatedAmpHours / BATTERY_CAPACITY_AH));
+#endif
+
     soc = constrain(soc, 0.0f, 100.0f);
 
     // Add tiny SOC noise
