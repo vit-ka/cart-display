@@ -17,7 +17,10 @@ public:
 
 private:
     BmsClientEmulator(DataCallback dataCallback, StatusCallback statusCallback)
-        : dataCallback(dataCallback), statusCallback(statusCallback) {}
+        : dataCallback(dataCallback), statusCallback(statusCallback) {
+        // Initialize accumulatedAmpHours based on initial SOC
+        accumulatedAmpHours = BATTERY_CAPACITY_AH * (1.0f - soc/100.0f);
+    }
 
     DataCallback dataCallback;
     StatusCallback statusCallback;
@@ -25,9 +28,10 @@ private:
     // Simulated battery state
     float voltage = 48.0f;      // 48V nominal
     float current = 0.0f;       // 0A initial
-    uint16_t soc = 95.0f;         // 50% initial
+    uint16_t soc = 55.0f;         // 50% initial
 
-    float accumulatedAmpHours = 0.0f;  // Track total amp-hours consumed
+    float accumulatedAmpHours = 0.0f;  // Will be initialized in constructor
+    static constexpr float BATTERY_CAPACITY_AH = 100.0f;  // Move this to class scope
 
     // Simulation parameters
     static constexpr float MAX_CURRENT = 100.0f;  // ±100A

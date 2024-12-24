@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "display_manager.h"
 #include "metrics_averager.h"
+#include "charge_estimator.h"
 
 #ifdef USE_EMULATOR
 #include "bms_client_emulator.h"
@@ -14,9 +15,18 @@ static constexpr const char* BATTERY_ADDRESS = "a4:c1:37:03:f9:fc";
 
 void onBmsData(const BmsData& rawData) {
     static MetricsAverager averager;
+    static ChargeEstimator chargeEstimator;
     uint32_t now = millis();
+
     averager.addMetrics(rawData, now);
     auto avgData = averager.getAverage();
+
+    chargeEstimator.update(avgData, now);
+    if (chargeEstimator.isEstimating()) {
+        Serial.printf("Time to full charge: %d minutes\n",
+                     chargeEstimator.getTimeToFullCharge() / 60);
+    }
+
     DisplayManager::instance().update(avgData);
 }
 
