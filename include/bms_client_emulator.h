@@ -25,7 +25,9 @@ private:
     // Simulated battery state
     float voltage = 48.0f;      // 48V nominal
     float current = 0.0f;       // 0A initial
-    uint16_t soc = 50;         // 50% initial
+    uint16_t soc = 95.0f;         // 50% initial
+
+    float accumulatedAmpHours = 0.0f;  // Track total amp-hours consumed
 
     // Simulation parameters
     static constexpr float MAX_CURRENT = 100.0f;  // ±100A
@@ -34,4 +36,6 @@ private:
 
     uint32_t lastUpdate = 0;
     void simulateBatteryBehavior();
+
+
 };

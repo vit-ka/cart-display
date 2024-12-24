@@ -33,7 +33,6 @@ class DisplayManager {
     void setupLabels();
     void setupPowerBar();
     void updatePowerBar(const BmsData &data);
-    void setupConnectionIcon();
 
     // UI Elements
     lv_obj_t *voltage_label = nullptr;
@@ -42,7 +41,8 @@ class DisplayManager {
     lv_obj_t *soc_label = nullptr;
     lv_obj_t *power_bar = nullptr;
     lv_obj_t *power_bar_label = nullptr;
-    lv_obj_t *connection_icon = nullptr;
+    lv_obj_t *connection_label = nullptr;
+    lv_obj_t *latency_label = nullptr;
 
     // Display buffer
     lv_disp_draw_buf_t draw_buf;

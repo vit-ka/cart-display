@@ -2,6 +2,15 @@
 #include <Arduino.h>
 #include <math.h>
 
+
+// Simulation parameters
+static constexpr float MAX_CURRENT = 300.0f;  // ±300A max
+static constexpr float TYPICAL_CURRENT = 200.0f;  // Typical driving current
+static constexpr float MIN_VOLTAGE = 42.0f;
+static constexpr float MAX_VOLTAGE = 54.6f;
+static constexpr float BATTERY_CAPACITY_AH = 100.0f;
+
+
 void BmsClientEmulator::setup() {
     lastUpdate = millis();
     statusCallback(ConnectionState::Connected);
@@ -17,35 +26,52 @@ void BmsClientEmulator::update() {
 
 void BmsClientEmulator::simulateBatteryBehavior() {
     static float time = 0;
-    time += 0.5f;  // Faster time progression
+    time += 0.5f;
 
-    // Simulate rapid current changes (acceleration/regen)
-    float baseWave = -sin(time * 0.5f);  // Inverted sine wave for correct direction
-    float randomNoise = (random(100) - 50) / 100.0f;
-    // Add sudden spikes for acceleration (negative current)
-    if (random(100) < 10) {  // 10% chance of acceleration spike
-        randomNoise = 0.8f + random(20) / 100.0f;  // Strong discharge (0.8 to 1.0)
+    uint32_t now = millis();
+    float timeStep = (now - lastUpdate) / 1000.0f / 3600.0f;
+    lastUpdate = now;
+
+    // Base wave mostly negative (driving) with occasional positive (regen)
+    float baseWave = -0.2f - 0.1f * sin(time * 0.5f);
+    float randomNoise = (random(100) - 50) / 300.0f;
+
+    if (random(100) < 15) {
+        randomNoise = 0.15f + random(20) / 200.0f;
     }
-    // Add regenerative braking spikes (positive current)
-    if (random(100) < 5) {   // 5% chance of regen spike
-        randomNoise = -0.4f - random(20) / 100.0f;   // Moderate regen (-0.4 to -0.6)
+    if (random(100) < 3) {
+        baseWave = 0.1f;
     }
 
-    current = MAX_CURRENT * (baseWave + randomNoise);
+    // Calculate base current
+    float rawCurrent = TYPICAL_CURRENT * (baseWave + randomNoise);
 
-    // More responsive voltage changes
-    float voltageNoise = (random(100) - 50) / 250.0f;  // ±0.2V noise
-    float voltageOffset = (current / MAX_CURRENT) * 3.0f;  // ±3V based on current (more voltage sag)
-    voltage = 48.0f + voltageOffset + voltageNoise;
+    // Limit current draw based on SOC (reduce power when battery is low)
+    float socFactor = soc / 100.0f;
+    float currentLimit = TYPICAL_CURRENT * (0.2f + 0.8f * socFactor);  // 20% at 0% SOC, 100% at 100% SOC
+    current = constrain(rawCurrent, -currentLimit, currentLimit);
+
+    // Calculate voltage based on SOC and current
+    float baseVoltage = 42.0f + (52.0f - 42.0f) * (soc / 100.0f);  // Linear voltage vs SOC
+    float voltageNoise = (random(100) - 50) / 250.0f;
+    float voltageOffset = (current / MAX_CURRENT) * 3.0f;  // Voltage sag under load
+    voltage = baseVoltage + voltageOffset + voltageNoise;
     voltage = constrain(voltage, MIN_VOLTAGE, MAX_VOLTAGE);
 
-    // Faster SOC changes
-    float socNoise = (random(100) - 50) / 500.0f;
-    float socChange = (current * 0.02f) + socNoise;  // Doubled SOC change rate
-    soc = constrain(soc + socChange, 0, 100);
+    // Accumulate amp-hours (negative current = discharge)
+    accumulatedAmpHours -= current * timeStep;
+    Serial.printf("Accumulated Ah: %.3f, SOC: %.1f%%\n",
+                 accumulatedAmpHours, soc);
 
-    // More variable latency during high current
-    uint32_t latency = 30 + random(40) + abs(current) / 2;  // Higher latency under load
+    // Calculate SOC based on accumulated amp-hours
+    soc = 100.0f * (1.0f - (accumulatedAmpHours / BATTERY_CAPACITY_AH));
+    soc = constrain(soc, 0.0f, 100.0f);
+
+    // Add tiny SOC noise
+    float socNoise = (random(100) - 50) / 2000.0f;
+    soc = constrain(soc + socNoise, 0.0f, 100.0f);
+
+    uint32_t latency = 30 + random(40) + abs(current) / 2;
 
     if (dataCallback) {
         BmsData data = {

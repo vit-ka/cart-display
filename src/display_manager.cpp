@@ -37,7 +37,6 @@ void DisplayManager::setup() {
     lv_obj_set_style_text_color(lv_scr_act(), lv_color_white(), LV_PART_MAIN);
 
     setupLabels();
-    setupConnectionIcon();
 
     // Force initial display update
     lv_task_handler();
@@ -48,24 +47,33 @@ void DisplayManager::setupLabels() {
     current_label = lv_label_create(lv_scr_act());
     power_label = lv_label_create(lv_scr_act());
     soc_label = lv_label_create(lv_scr_act());
+    connection_label = lv_label_create(lv_scr_act());
+    latency_label = lv_label_create(lv_scr_act());
 
     lv_label_set_text(voltage_label, "Voltage: --.-V");
     lv_label_set_text(current_label, "Current: --.-A");
-    lv_label_set_text(soc_label, "SOC: --%");
+    lv_label_set_text(soc_label, "Charge: --%");
+    lv_label_set_text(connection_label, "Waiting...");
+    lv_label_set_text(latency_label, "Latency: --ms");
 
     lv_obj_set_style_text_font(soc_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(connection_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(connection_label, lv_color_make(100, 100, 100), 0);  // Gray for waiting
+    lv_obj_set_style_text_font(latency_label, &lv_font_montserrat_10, 0);
 
     lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -80);
-    lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -40);
+    lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -60);
     setupPowerBar();
-    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, 55);
+    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, -30);
+    lv_obj_align(connection_label, LV_ALIGN_CENTER, 0, 80);
+    lv_obj_align(latency_label, LV_ALIGN_CENTER, 0, 100);
 }
 
 void DisplayManager::setupPowerBar() {
     // Create container for power bar and label
     lv_obj_t *cont = lv_obj_create(lv_scr_act());
     lv_obj_set_size(cont, 220, 40);
-    lv_obj_align(cont, LV_ALIGN_CENTER, 0, 10);
+    lv_obj_align(cont, LV_ALIGN_CENTER, 0, 20);
     lv_obj_set_style_border_width(cont, 0, 0);
     lv_obj_set_style_bg_opa(cont, LV_OPA_0, 0);
     lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
@@ -141,7 +149,7 @@ void DisplayManager::update(const BmsData &data) {
 
     updatePowerBar(data);
 
-    snprintf(buf, sizeof(buf), "SOC: %d%%", data.soc);
+    snprintf(buf, sizeof(buf), "Charge: %d%%", data.soc);
     lv_label_set_text(soc_label, buf);
 
     if (data.soc <= 15) {
@@ -155,31 +163,21 @@ void DisplayManager::update(const BmsData &data) {
     // Update connection status with latency
     if (data.latency_ms > 0) {
         static char buf[32];
-        snprintf(buf, sizeof(buf), "Connected (%dms)", data.latency_ms);
-        lv_label_set_text(connection_icon, buf);
-        lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);
+        snprintf(buf, sizeof(buf), "Latency: %dms", data.latency_ms);
+        lv_label_set_text(latency_label, buf);
+        lv_obj_set_style_text_color(latency_label, lv_color_make(0, 255, 0), 0);
     }
-}
-
-void DisplayManager::setupConnectionIcon() {
-    connection_icon = lv_label_create(lv_scr_act());
-    lv_obj_set_style_text_font(connection_icon, &lv_font_montserrat_14, 0);
-    lv_obj_set_size(connection_icon, 220, 30);
-    lv_obj_set_style_text_align(connection_icon, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(connection_icon, LV_ALIGN_CENTER, 0, 100);
-    lv_label_set_text(connection_icon, "Waiting...");
-    lv_obj_set_style_text_color(connection_icon, lv_color_make(100, 100, 100), 0);  // Gray for waiting
 }
 
 void DisplayManager::updateConnectionState(ConnectionState state) {
     switch (state) {
         case ConnectionState::Connecting:
-            lv_label_set_text(connection_icon, "Connecting...");
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(255, 255, 0), 0);
+            lv_label_set_text(connection_label, "Connecting...");
+            lv_obj_set_style_text_color(connection_label, lv_color_make(255, 255, 0), 0);
             break;
         case ConnectionState::Connected:
-            lv_label_set_text(connection_icon, "Connected");  // Initial connected state, will be updated with latency
-            lv_obj_set_style_text_color(connection_icon, lv_color_make(0, 255, 0), 0);
+            lv_label_set_text(connection_label, "Connected");  // Initial connected state, will be updated with latency
+            lv_obj_set_style_text_color(connection_label, lv_color_make(0, 255, 0), 0);
             break;
     }
 }
