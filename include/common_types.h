@@ -1,10 +1,7 @@
 #pragma once
 #include <cstdint>
 
-enum class ConnectionState {
-    Connecting,
-    Connected
-};
+enum class ConnectionState { Connecting, Connected };
 
 struct BmsData {
     float voltage;

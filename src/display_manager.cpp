@@ -1,7 +1,7 @@
 #include "display_manager.h"
 
 static constexpr int16_t POWER_BAR_DISCHARGING_MAX = 4000;  // 4kW
-static constexpr int16_t POWER_BAR_CHARGING_MAX = 1000;   // 1kW
+static constexpr int16_t POWER_BAR_CHARGING_MAX = 1000;     // 1kW
 
 void DisplayManager::flushDisplay(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     if (tft.getStartCount() == 0) {
@@ -63,7 +63,7 @@ void DisplayManager::setupLabels() {
 
 void DisplayManager::setupPowerBar() {
     // Create container for power bar and label
-    lv_obj_t* cont = lv_obj_create(lv_scr_act());
+    lv_obj_t *cont = lv_obj_create(lv_scr_act());
     lv_obj_set_size(cont, 220, 40);
     lv_obj_align(cont, LV_ALIGN_CENTER, 0, 10);
     lv_obj_set_style_border_width(cont, 0, 0);
@@ -76,7 +76,6 @@ void DisplayManager::setupPowerBar() {
     lv_obj_set_size(power_bar, 220, 40);
     lv_obj_align(power_bar, LV_ALIGN_CENTER, 0, 00);
     lv_bar_set_value(power_bar, 0, LV_ANIM_ON);
-
 
     // Style for background
     lv_obj_set_style_bg_color(power_bar, lv_color_make(40, 40, 40), LV_PART_MAIN);
@@ -95,27 +94,27 @@ void DisplayManager::setupPowerBar() {
     lv_label_set_text(power_bar_label, "0 W");
 }
 
-void DisplayManager::updatePowerBar(const BmsData& data) {
+void DisplayManager::updatePowerBar(const BmsData &data) {
     lv_color_t barColor, barTextColor;
     // Adjust range and value based on charging/discharging.
     if (data.power > 0) {
         // Charging mode
         lv_bar_set_range(power_bar, 0, POWER_BAR_CHARGING_MAX);
         lv_bar_set_value(power_bar, data.power, LV_ANIM_ON);
-        barColor = lv_color_make(0, 150, 0);      // Green for charging
+        barColor = lv_color_make(0, 150, 0);  // Green for charging
         barTextColor = lv_color_white();
     } else if (data.power < 0) {
         // Discharging mode
         lv_bar_set_range(power_bar, 0, POWER_BAR_DISCHARGING_MAX);
         lv_bar_set_value(power_bar, -data.power, LV_ANIM_ON);
-        barColor = lv_color_make(150, 0, 0);      // Red for discharging
+        barColor = lv_color_make(150, 0, 0);  // Red for discharging
         barTextColor = lv_color_white();
     } else {
         // Zero power: show minimal bar
         lv_bar_set_range(power_bar, 0, 0);
         lv_bar_set_value(power_bar, data.power, LV_ANIM_ON);
         barColor = lv_color_make(100, 100, 100);  // Grey for no power
-        barTextColor = lv_color_make(100,100,100);
+        barTextColor = lv_color_make(100, 100, 100);
     }
 
     lv_obj_set_style_bg_color(power_bar, barColor, LV_PART_INDICATOR);
@@ -124,14 +123,14 @@ void DisplayManager::updatePowerBar(const BmsData& data) {
     // Update text
     static char buf[32];
     if (abs(data.power) >= 1000) {
-        snprintf(buf, sizeof(buf), "%.2f kW", data.power/1000);
+        snprintf(buf, sizeof(buf), "%.2f kW", data.power / 1000);
     } else {
         snprintf(buf, sizeof(buf), "%.0f W", data.power);
     }
     lv_label_set_text(power_bar_label, buf);
 }
 
-void DisplayManager::update(const BmsData& data) {
+void DisplayManager::update(const BmsData &data) {
     static char buf[32];
 
     snprintf(buf, sizeof(buf), "Voltage: %.1fV", data.voltage);

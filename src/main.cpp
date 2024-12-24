@@ -1,22 +1,23 @@
 #include <Arduino.h>
-#include "display_manager.h"
+
 #include "bms_client.h"
 #include "common_types.h"
+#include "display_manager.h"
 #include "metrics_averager.h"
 
 #define BATTERY_ADDRESS "a4:c1:37:03:f9:fc"
 
-void onBmsData(const BmsData& rawData) {
-  static MetricsAverager averager;
+void onBmsData(const BmsData &rawData) {
+    static MetricsAverager averager;
 
-  uint32_t now = millis();
-  averager.addMetrics(rawData, now);
-  auto avgData = averager.getAverage();
-  DisplayManager::instance().update(avgData);
+    uint32_t now = millis();
+    averager.addMetrics(rawData, now);
+    auto avgData = averager.getAverage();
+    DisplayManager::instance().update(avgData);
 }
 
 void onConnectionStatus(ConnectionState status) {
-    switch(status) {
+    switch (status) {
         case ConnectionState::Connecting:
             Serial.println("Connecting to BMS...");
             DisplayManager::instance().updateConnectionState(ConnectionState::Connecting);

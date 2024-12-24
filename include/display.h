@@ -6,7 +6,7 @@ class LGFX : public lgfx::LGFX_Device {
     lgfx::Panel_GC9A01 _panel_instance;
     lgfx::Bus_SPI _bus_instance;
 
-public:
+   public:
     LGFX(void) {
         {
             auto cfg = _bus_instance.config();

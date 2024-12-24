@@ -1,4 +1,5 @@
 #include "metrics_averager.h"
+
 #include <Arduino.h>
 
 void MetricsAverager::addMetrics(const BmsData& data, uint32_t timestamp) {
@@ -7,12 +8,7 @@ void MetricsAverager::addMetrics(const BmsData& data, uint32_t timestamp) {
     }
 
     MetricsPoint point = {
-        .voltage = data.voltage,
-        .current = data.current,
-        .power = data.power,
-        .soc = data.soc,
-        .timestamp = timestamp
-    };
+        .voltage = data.voltage, .current = data.current, .power = data.power, .soc = data.soc, .timestamp = timestamp};
     history.push_back(point);
 }
 
