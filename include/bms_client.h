@@ -1,5 +1,5 @@
 #pragma once
-
+#include "bms_interface.h"
 #include <BLEClient.h>
 #include <BLEDevice.h>
 
@@ -7,7 +7,7 @@
 
 #include "common_types.h"
 
-class BmsClient {
+class BmsClient: public IBmsClient {
    public:
     // Callback types
     using DataCallback = std::function<void(const BmsData &)>;
@@ -30,9 +30,9 @@ class BmsClient {
     }
 
     // Public interface
-    void setup();
-    void update();
-    bool isConnected() const {
+    void setup() override;
+    void update() override;
+    bool isConnected() const override {
         return pClient != nullptr && pRemoteService != nullptr && pNotifyChar != nullptr && pWriteChar != nullptr;
     }
 

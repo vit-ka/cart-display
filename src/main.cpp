@@ -1,15 +1,21 @@
 #include <Arduino.h>
-
-#include "bms_client.h"
-#include "common_types.h"
 #include "display_manager.h"
 #include "metrics_averager.h"
 
-static constexpr const char *BATTERY_ADDRESS = "a4:c1:37:03:f9:fc";
+// Choose between real and emulated client
+#define USE_EMULATOR
+#ifdef USE_EMULATOR
+#include "bms_client_emulator.h"
+using BmsClientType = BmsClientEmulator;
+#else
+#include "bms_client.h"
+using BmsClientType = BmsClient;
+#endif
 
-void onBmsData(const BmsData &rawData) {
+static constexpr const char* BATTERY_ADDRESS = "a4:c1:37:03:f9:fc";
+
+void onBmsData(const BmsData& rawData) {
     static MetricsAverager averager;
-
     uint32_t now = millis();
     averager.addMetrics(rawData, now);
     auto avgData = averager.getAverage();
@@ -17,7 +23,7 @@ void onBmsData(const BmsData &rawData) {
 }
 
 void onConnectionStatus(ConnectionState status) {
-    switch (status) {
+    switch(status) {
         case ConnectionState::Connecting:
             Serial.println("Connecting to BMS...");
             DisplayManager::instance().updateConnectionState(ConnectionState::Connecting);
@@ -32,11 +38,11 @@ void onConnectionStatus(ConnectionState status) {
 void setup() {
     Serial.begin(115200);
     DisplayManager::instance().setup();
-    BmsClient::instance(BATTERY_ADDRESS, onBmsData, onConnectionStatus).setup();
+    BmsClientType::instance(BATTERY_ADDRESS, onBmsData, onConnectionStatus).setup();
 }
 
 void loop() {
     DisplayManager::instance().handleTasks();
-    BmsClient::instance().update();
+    BmsClientType::instance().update();
     delay(100);
 }
