@@ -35,9 +35,7 @@ class DisplayManager {
     void updatePowerBar(const BmsData &data);
 
     // UI Elements
-    lv_obj_t *voltage_label = nullptr;
-    lv_obj_t *current_label = nullptr;
-    lv_obj_t *power_label = nullptr;
+    lv_obj_t *metrics_label = nullptr;
     lv_obj_t *soc_label = nullptr;
     lv_obj_t *power_bar = nullptr;
     lv_obj_t *power_bar_label = nullptr;

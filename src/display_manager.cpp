@@ -43,26 +43,25 @@ void DisplayManager::setup() {
 }
 
 void DisplayManager::setupLabels() {
-    voltage_label = lv_label_create(lv_scr_act());
-    current_label = lv_label_create(lv_scr_act());
-    power_label = lv_label_create(lv_scr_act());
+    metrics_label = lv_label_create(lv_scr_act());
     soc_label = lv_label_create(lv_scr_act());
     connection_label = lv_label_create(lv_scr_act());
     latency_label = lv_label_create(lv_scr_act());
 
-    lv_label_set_text(voltage_label, "Voltage: --.-V");
-    lv_label_set_text(current_label, "Current: --.-A");
+    lv_label_set_text(metrics_label, "0.0V  |  0.0A");
     lv_label_set_text(soc_label, "Charge: --%");
     lv_label_set_text(connection_label, "Waiting...");
     lv_label_set_text(latency_label, "Latency: --ms");
 
+    lv_obj_set_style_text_font(metrics_label, &lv_font_dejavu_16_persian_hebrew, 0);
     lv_obj_set_style_text_font(soc_label, &lv_font_montserrat_20, 0);
     lv_obj_set_style_text_font(connection_label, &lv_font_montserrat_14, 0);
-    lv_obj_set_style_text_color(connection_label, lv_color_make(100, 100, 100), 0);  // Gray for waiting
     lv_obj_set_style_text_font(latency_label, &lv_font_montserrat_10, 0);
 
-    lv_obj_align(voltage_label, LV_ALIGN_CENTER, 0, -80);
-    lv_obj_align(current_label, LV_ALIGN_CENTER, 0, -60);
+    lv_obj_set_style_text_color(metrics_label, lv_color_make(140, 140, 140), 0);
+    lv_obj_set_style_text_color(connection_label, lv_color_make(100, 100, 100), 0);
+
+    lv_obj_align(metrics_label, LV_ALIGN_CENTER, 0, -70);
     setupPowerBar();
     lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, -30);
     lv_obj_align(connection_label, LV_ALIGN_CENTER, 0, 80);
@@ -140,12 +139,8 @@ void DisplayManager::updatePowerBar(const BmsData &data) {
 
 void DisplayManager::update(const BmsData &data) {
     static char buf[32];
-
-    snprintf(buf, sizeof(buf), "Voltage: %.1fV", data.voltage);
-    lv_label_set_text(voltage_label, buf);
-
-    snprintf(buf, sizeof(buf), "Current: %.1fA", data.current);
-    lv_label_set_text(current_label, buf);
+    snprintf(buf, sizeof(buf), "%5.1fV  |  %5.1fA", data.voltage, data.current);
+    lv_label_set_text(metrics_label, buf);
 
     updatePowerBar(data);
 
