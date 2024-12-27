@@ -1,6 +1,8 @@
 #include "charging_log.h"
 
-void ChargingLog::logDataPoint(uint32_t timestamp_ms, float soc, float amp_hours, float power) {
+#include <Arduino.h>
+
+void ChargingLog::logDataPoint(uint32_t timestamp_ms, float soc, float amp_hours) {
     if (!SPIFFS.exists(LOG_FILE)) {
         File file = SPIFFS.open(LOG_FILE, "w");
         if (!file) {
@@ -17,11 +19,12 @@ void ChargingLog::logDataPoint(uint32_t timestamp_ms, float soc, float amp_hours
         return;
     }
 
-    char buffer[64];
-    snprintf(buffer, sizeof(buffer), "%u\t%.2f\t%.3f\t%.1f\n",
-             timestamp_ms, soc, amp_hours, power);
+    char buffer[48];
+    snprintf(buffer, sizeof(buffer), "%u\t%.2f\t%.3f\n", timestamp_ms, soc, amp_hours);
     file.print(buffer);
     file.close();
+
+    Serial.printf("Logged: SOC: %.1f%%, Accumulated Ah: %.3f\n", soc, amp_hours);
 }
 
 String ChargingLog::getLogContents() {
