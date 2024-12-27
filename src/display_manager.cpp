@@ -70,7 +70,7 @@ void DisplayManager::setupLabels() {
 
     lv_obj_set_style_text_color(metrics_label, lv_color_make(140, 140, 140), 0);
     lv_obj_set_style_text_color(connection_label, lv_color_make(100, 100, 100), 0);
-    lv_obj_set_style_text_color(time_to_full_label, lv_color_make(0, 200, 0), 0);
+    lv_obj_set_style_text_color(time_to_full_label, lv_color_make(0, 120, 0), 0);
 
     lv_obj_align(metrics_label, LV_ALIGN_CENTER, 0, -70);
     setupPowerBar();

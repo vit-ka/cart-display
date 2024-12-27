@@ -54,7 +54,7 @@ void BmsClientEmulator::simulateBatteryBehavior() {
 
 #ifdef EMULATE_OUTLET_CHARGING
     current = OUTLET_CHARGING_CURRENT;
-    voltage = MIN_VOLTAGE + (MAX_VOLTAGE - MIN_VOLTAGE) * (soc / 100.0f);
+    voltage = MAX_VOLTAGE;
 #else
     // Driving/regen behavior
     float baseWave = -0.2f - 0.1f * sin(time * 0.5f);
