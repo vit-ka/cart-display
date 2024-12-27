@@ -61,11 +61,11 @@ void loop() {
         String cmd = Serial.readStringUntil('\n');
         cmd.trim();
 
-        if (cmd == "getlog") {
+        if (cmd == "charging_log") {
             Serial.println("=== Charging Log ===");
             Serial.print(ChargingLog::getLogContents());
             Serial.println("=== End Log ===");
-        } else if (cmd == "clearlog") {
+        } else if (cmd == "clear_charging_log") {
             ChargingLog::clearLog();
             Serial.println("Log cleared");
         }
