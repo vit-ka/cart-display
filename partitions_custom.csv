@@ -1,5 +1,19 @@
-# Name,   Type, SubType, Offset,  Size, Flags
-nvs,      data, nvs,     0x9000,  0x5000,
-otadata,  data, ota,     0xe000,  0x2000,
-app0,     app,  ota_0,   0x10000, 0x200000,
-spiffs,   data, spiffs,  0x210000,0x1F0000,
+# Name,   Type, SubType,  Offset,   Size,     Flags
+# ESP32 Flash layout:
+
+# Non-volatile storage - used for WiFi credentials, BLE pairing, etc.
+nvs,      data, nvs,     0x9000,   0x5000,
+
+# OTA (Over The Air) update data - stores update status
+otadata,  data, ota,     0xe000,   0x2000,
+
+# Main application partition - where our firmware runs from
+# 0x200000 = 2MB, larger than default to fit BLE stack and LVGL
+app0,     app,  ota_0,   0x10000,  0x200000,
+
+# SPIFFS file system - could be used for fonts, images, config files
+# 0x1F0000 = 1.94MB of storage space
+spiffs,   data, spiffs,  0x210000, 0x1F0000,
+
+# Note: Offsets and sizes are in hex
+# Total flash size = 4MB (0x400000)
