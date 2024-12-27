@@ -7,8 +7,8 @@ namespace {
     static constexpr const char* kHeader = "timestamp_ms\tsoc\tamp_hours\n";
     static constexpr const char* kSessionSeparator =
         "\n=== New Charging Session ===\n"
-        "# Note: First point's amp-hours are incomplete\n"
-        "# timestamp_ms is milliseconds since device startup\n\n";
+        "# Note: First two point's amp-hours are incomplete\n"
+        "# timestamp_ms is milliseconds since device startup\n";
 
 
 
