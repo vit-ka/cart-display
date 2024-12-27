@@ -5,7 +5,7 @@
 
 // Simulation parameters
 static constexpr float MAX_CURRENT = 300.0f;  // ±300A max
-static constexpr float TYPICAL_CURRENT = 200.0f;  // Typical driving current
+static constexpr float TYPICAL_CURRENT = -200.0f;  // Typical driving current
 static constexpr float MIN_VOLTAGE = 42.0f;
 static constexpr float MAX_VOLTAGE = 54.6f;
 
@@ -53,19 +53,8 @@ void BmsClientEmulator::simulateBatteryBehavior() {
     lastUpdate = now;
 
 #ifdef EMULATE_OUTLET_CHARGING
-    // Simulate constant charging
     current = OUTLET_CHARGING_CURRENT;
-
-    // Calculate voltage based on SOC (42V at 0%, 52V at 100%)
-    voltage = 42.0f + (52.0f - 42.0f) * (soc / 100.0f);
-
-    // Calculate SOC for charging mode (~1% per 30 seconds)
-    static constexpr float CHARGE_RATE = 0.033f;   // %/second
-    float delta_soc = CHARGE_RATE * ((now - lastUpdate) / 1000.0f);  // Convert ms to seconds
-    soc = std::min(soc + delta_soc, 100.0f);
-
-    // Accumulate amp-hours for logging
-    accumulatedAmpHours += current * timeStep;
+    voltage = MIN_VOLTAGE + (MAX_VOLTAGE - MIN_VOLTAGE) * (soc / 100.0f);
 #else
     // Driving/regen behavior
     float baseWave = -0.2f - 0.1f * sin(time * 0.5f);
@@ -105,19 +94,11 @@ void BmsClientEmulator::simulateBatteryBehavior() {
     float voltageOffset = (current / MAX_CURRENT) * 3.0f;
     voltage = baseVoltage + voltageOffset + voltageNoise;
     voltage = constrain(voltage, MIN_VOLTAGE, MAX_VOLTAGE);
-
-    // Accumulate amp-hours (negative current = discharge)
-    accumulatedAmpHours -= current * timeStep;
-
-    // Calculate SOC for driving mode
-    soc = 100.0f * (1.0f - (accumulatedAmpHours / BATTERY_CAPACITY_AH));
 #endif
 
+    accumulatedAmpHours += current * timeStep;
+    soc += (current * timeStep / BATTERY_CAPACITY_AH) * 100.0f;
     soc = constrain(soc, 0.0f, 100.0f);
-
-    // Add tiny SOC noise
-    float socNoise = (random(100) - 50) / 2000.0f;
-    soc = constrain(soc + socNoise, 0.0f, 100.0f);
 
     // More realistic latency simulation
     static uint32_t base_latency = 100;
