@@ -53,22 +53,19 @@ void BmsClientEmulator::simulateBatteryBehavior() {
     lastUpdate = now;
 
 #ifdef EMULATE_OUTLET_CHARGING
-    // Simulate constant charging with small variations
-    float randomNoise = (random(100) - 50) / 500.0f;
-    current = OUTLET_CHARGING_CURRENT + randomNoise;
+    // Simulate constant charging
+    current = OUTLET_CHARGING_CURRENT;
 
-    // Calculate voltage based on SOC and current
-    float baseVoltage = 42.0f + (52.0f - 42.0f) * (soc / 100.0f);
-    float voltageNoise = (random(100) - 50) / 250.0f;
-    float voltageOffset = (current / MAX_CURRENT) * 3.0f;
-    voltage = baseVoltage + voltageOffset + voltageNoise;
-    voltage = constrain(voltage, MIN_VOLTAGE, MAX_VOLTAGE);
+    // Calculate voltage based on SOC (42V at 0%, 52V at 100%)
+    voltage = 42.0f + (52.0f - 42.0f) * (soc / 100.0f);
 
-    // Accumulate amp-hours (positive current = charging)
+    // Calculate SOC for charging mode (~1% per 30 seconds)
+    static constexpr float CHARGE_RATE = 0.033f;   // %/second
+    float delta_soc = CHARGE_RATE * ((now - lastUpdate) / 1000.0f);  // Convert ms to seconds
+    soc = std::min(soc + delta_soc, 100.0f);
+
+    // Accumulate amp-hours for logging
     accumulatedAmpHours += current * timeStep;
-
-    // Calculate SOC for charging mode
-    soc = 100.0f * (accumulatedAmpHours / BATTERY_CAPACITY_AH);
 #else
     // Driving/regen behavior
     float baseWave = -0.2f - 0.1f * sin(time * 0.5f);
@@ -122,7 +119,15 @@ void BmsClientEmulator::simulateBatteryBehavior() {
     float socNoise = (random(100) - 50) / 2000.0f;
     soc = constrain(soc + socNoise, 0.0f, 100.0f);
 
-    uint32_t latency = 30 + random(40) + abs(current) / 2;
+    // More realistic latency simulation
+    static uint32_t base_latency = 100;
+    if (random(100) < 10) {  // 10% chance to spike
+        base_latency = random(200, 2000);  // Occasional big spikes
+    } else if (random(100) < 30) {  // 30% chance to drift
+        base_latency += random(-20, 20);
+        base_latency = constrain(base_latency, 50, 500);
+    }
+    uint32_t latency = base_latency + random(20);  // Add jitter
 
     if (dataCallback) {
         BmsData data = {

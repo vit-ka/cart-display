@@ -12,6 +12,14 @@ private:
     static constexpr uint32_t REQUIRED_CHARGING_TIME_MS = 10000;  // 10 seconds
     static constexpr float CHARGE_MA_FACTOR = 0.05f;    // Moving average factor for current
     static constexpr float RATE_MA_FACTOR = 0.1f;      // Moving average factor for charging rate
+    static constexpr float BATTERY_CAPACITY_AH = 100.0f;
+
+    void updateAccumulatedAh(float current, uint32_t timestamp);
+    void logSocChangeIfNeeded(uint16_t soc, uint32_t timestamp);
+    void startCharging(const BmsData& data, uint32_t timestamp);
+    void updateChargingEstimates(const BmsData& data, uint32_t timestamp);
+    void stopCharging();
+    float calculateTimeToFull(float soc, float charge_rate) const;
 
     uint32_t last_update_ms = 0;
     uint32_t charging_start_ms = 0;
@@ -21,6 +29,6 @@ private:
     uint32_t time_to_full_s = 0;
     bool was_charging = false;
     float last_soc = 0.0f;
-    float accumulated_ah = 0.0f;  // Accumulated amp-hours since last SOC change
+    float accumulated_ah = 0.0f;      // Accumulated amp-hours since last SOC change
     uint16_t last_logged_soc = 0;
 };

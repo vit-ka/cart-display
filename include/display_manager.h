@@ -53,4 +53,11 @@ class DisplayManager {
         auto *instance = (DisplayManager *)disp->user_data;
         instance->flushDisplay(disp, area, color_p);
     }
+
+    // Color definitions moved to cpp file
+    static const lv_color_t COLOR_CONNECTED;
+    static const lv_color_t COLOR_CONNECTING;
+    static const lv_color_t COLOR_LATENCY_GOOD;
+    static const lv_color_t COLOR_LATENCY_OK;
+    static const lv_color_t COLOR_LATENCY_BAD;
 };
