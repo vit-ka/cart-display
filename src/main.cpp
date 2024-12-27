@@ -2,6 +2,7 @@
 #include "display_manager.h"
 #include "metrics_averager.h"
 #include "charge_estimator.h"
+#include "charging_log.h"
 
 #ifdef USE_EMULATOR
 #include "bms_client_emulator.h"
@@ -46,10 +47,26 @@ void setup() {
     Serial.begin(115200);
     DisplayManager::instance().setup();
     BmsClientType::instance(BATTERY_ADDRESS, onBmsData, onConnectionStatus).setup();
+    ChargingLog::init();
 }
 
 void loop() {
     DisplayManager::instance().handleTasks();
     BmsClientType::instance().update();
     delay(100);
+
+    // Check for commands
+    if (Serial.available()) {
+        String cmd = Serial.readStringUntil('\n');
+        cmd.trim();
+
+        if (cmd == "getlog") {
+            Serial.println("=== Charging Log ===");
+            Serial.print(ChargingLog::getLogContents());
+            Serial.println("=== End Log ===");
+        } else if (cmd == "clearlog") {
+            ChargingLog::clearLog();
+            Serial.println("Log cleared");
+        }
+    }
 }

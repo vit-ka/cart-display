@@ -1,5 +1,6 @@
 #pragma once
 #include "common_types.h"
+#include "charging_log.h"
 
 class ChargeEstimator {
 public:
@@ -20,4 +21,6 @@ private:
     uint32_t time_to_full_s = 0;
     bool was_charging = false;
     float last_soc = 0.0f;
+    float accumulated_ah = 0.0f;  // Accumulated amp-hours since last SOC change
+    uint16_t last_logged_soc = 0;
 };
