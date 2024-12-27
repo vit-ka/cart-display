@@ -48,6 +48,7 @@ void setup() {
     DisplayManager::instance().setup();
     BmsClientType::instance(BATTERY_ADDRESS, onBmsData, onConnectionStatus).setup();
     ChargingLog::init();
+    ChargingLog::startNewSession();
 }
 
 void loop() {

@@ -3,12 +3,10 @@
 
 class ChargingLog {
    public:
-    static bool init() {
-        return SPIFFS.begin(true);  // true = format on failure
-    }
+    static bool init();
 
     // Add a new data point to the log
-    static void logDataPoint(uint32_t timestamp_ms, float soc, float amp_hours);
+    static void logDataPoint(uint32_t timestamp_ms, uint16_t soc, float amp_hours);
 
     // Get the log file contents as a string
     static String getLogContents();
@@ -16,7 +14,7 @@ class ChargingLog {
     // Clear the log file
     static void clearLog();
 
+    static void startNewSession();
+
    private:
-    static constexpr const char* LOG_FILE = "/charging_log.tsv";
-    static constexpr const char* HEADER = "timestamp_ms\tsoc\tamp_hours\n";
 };
