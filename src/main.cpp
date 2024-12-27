@@ -3,6 +3,8 @@
 #include "metrics_averager.h"
 #include "charge_estimator.h"
 #include "charging_log.h"
+#include "mqtt_client.h"
+#include "config.h"
 
 #ifdef USE_EMULATOR
 #include "bms_client_emulator.h"
@@ -11,8 +13,6 @@ using BmsClientType = BmsClientEmulator;
 #include "bms_client.h"
 using BmsClientType = BmsClient;
 #endif
-
-static constexpr const char* BATTERY_ADDRESS = "a4:c1:37:03:f9:fc";
 
 void onBmsData(const BmsData& rawData) {
     static MetricsAverager averager;
@@ -28,6 +28,7 @@ void onBmsData(const BmsData& rawData) {
     displayData.time_to_full_s = chargeEstimator.isEstimating() ? chargeEstimator.getTimeToFullCharge() : 0 ;
 
     DisplayManager::instance().update(displayData);
+    MqttClient::instance().update(displayData);
 }
 
 void onConnectionStatus(ConnectionState status) {
@@ -49,11 +50,16 @@ void setup() {
     BmsClientType::instance(BATTERY_ADDRESS, onBmsData, onConnectionStatus).setup();
     ChargingLog::init();
     ChargingLog::startNewSession();
+
+    MqttClient::instance().setup(WIFI_SSID, WIFI_PASSWORD,
+                               MQTT_SERVER, MQTT_PORT,
+                               MQTT_USER, MQTT_PASSWORD);
 }
 
 void loop() {
     DisplayManager::instance().handleTasks();
     BmsClientType::instance().update();
+    MqttClient::instance().loop();
     delay(100);
 
     // Check for commands
