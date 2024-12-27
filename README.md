@@ -4,9 +4,15 @@ A battery monitoring system for golf carts that connects to BAT-BMS over Bluetoo
 
 ## Hardware
 
-- ESP32-C3-MINI-1-N4 module (ESP32-C3-DevKitM-1 development board)
-- 240x240 TFT LCD Display (ST7789 driver)
-- Power supply: 5V via USB or 3.3V direct
+- ESP32-2424S012N/C module:
+  - ESP32-C3-MINI-1U core (Single Core MCU)
+  - 400KB SRAM, 384KB ROM, 4MB Flash
+  - 160MHz max frequency
+  - Integrated WiFi and Bluetooth
+- 1.28" IPS LCD Display:
+  - 240x240 resolution
+  - 16-bit color
+  - GC9A01 driver
 
 ## Features
 
