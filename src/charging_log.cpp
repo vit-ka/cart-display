@@ -8,15 +8,17 @@ namespace {
         "# Note: First two point's amp-hours are incomplete\n"
         "# timestamp_ms is milliseconds since device startup\n";
     static constexpr const char* kSessionSeparator = "\n";
-    static constexpr size_t MAX_LOG_SIZE = 32 * 1024;  // 32KB max
-    static constexpr size_t RESERVED_SPACE = 4 * 1024;  // Keep 4KB free
+    static constexpr size_t kMaxLogSize = 32 * 1024;  // 32KB max
+    static constexpr size_t kReservedSpace = 4 * 1024;  // Keep 4KB free
 
     bool checkSpaceAvailable() {
         size_t total = SPIFFS.totalBytes();
         size_t used = SPIFFS.usedBytes();
         size_t free = total - used;
 
-        if (free < RESERVED_SPACE) {
+        Serial.printf("SPIFFS: Total: %u bytes, Used: %u bytes, Free: %u bytes\n", total, used, free);
+
+        if (free < kReservedSpace) {
             Serial.printf("Low storage space: %u bytes free\n", free);
             return false;
         }
@@ -29,13 +31,13 @@ namespace {
         File file = SPIFFS.open(kLogFile, "r");
         if (!file) return;
 
-        if (file.size() > MAX_LOG_SIZE) {
-            Serial.println("Log file too large, keeping only newest records...");
+        if (file.size() > kMaxLogSize) {
+            Serial.printf("%s file too large, keeping only newest records...\n", kLogFile);
             String contents = file.readString();
             file.close();
 
             // Find lines from the end to keep half the max size
-            size_t targetSize = MAX_LOG_SIZE / 2;
+            size_t targetSize = kMaxLogSize / 2;
             size_t pos = contents.length();
             size_t newlines = 0;
 
