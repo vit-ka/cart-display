@@ -53,14 +53,14 @@ void ChargeEstimator::updateChargingEstimates(const BmsData& data, uint32_t time
     if (charging_duration_ms < REQUIRED_CHARGING_TIME_MS) return;
 
     // Update moving averages
-    avg_charge_current = avg_charge_current * (1.0f - CHARGE_MA_FACTOR) +
-                        data.current * CHARGE_MA_FACTOR;
+    avg_charge_current = avg_charge_current * (1.0f - CHARGE_MA_FACTOR) + data.current * CHARGE_MA_FACTOR;
 
     float time_delta_h = (timestamp - last_update_ms) / 1000.0f / 3600.0f;
     if (time_delta_h > 0) {
         float instantaneous_rate = (data.soc - last_soc) / time_delta_h;
-        avg_charge_rate = (avg_charge_rate == 0.0f) ? instantaneous_rate :
-            avg_charge_rate * (1.0f - RATE_MA_FACTOR) + instantaneous_rate * RATE_MA_FACTOR;
+        avg_charge_rate = (avg_charge_rate == 0.0f)
+                              ? instantaneous_rate
+                              : avg_charge_rate * (1.0f - RATE_MA_FACTOR) + instantaneous_rate * RATE_MA_FACTOR;
     }
 
     time_to_full_s = calculateTimeToFull(data.soc, avg_charge_rate);

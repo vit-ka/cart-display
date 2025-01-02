@@ -4,11 +4,11 @@ static constexpr int16_t POWER_BAR_DISCHARGING_MAX = 4000;  // 4kW
 static constexpr int16_t POWER_BAR_CHARGING_MAX = 1000;     // 1kW
 
 // Static color definitions
-const lv_color_t DisplayManager::COLOR_CONNECTED = lv_color_make(0, 100, 0);      // Very dark green
-const lv_color_t DisplayManager::COLOR_CONNECTING = lv_color_make(120, 120, 0);   // Very dark yellow
-const lv_color_t DisplayManager::COLOR_LATENCY_GOOD = lv_color_make(0, 80, 0);    // Very dark green
-const lv_color_t DisplayManager::COLOR_LATENCY_OK = lv_color_make(100, 100, 0);   // Very dark yellow
-const lv_color_t DisplayManager::COLOR_LATENCY_BAD = lv_color_make(100, 0, 0);    // Very dark red
+const lv_color_t DisplayManager::COLOR_CONNECTED = lv_color_make(0, 100, 0);     // Very dark green
+const lv_color_t DisplayManager::COLOR_CONNECTING = lv_color_make(120, 120, 0);  // Very dark yellow
+const lv_color_t DisplayManager::COLOR_LATENCY_GOOD = lv_color_make(0, 80, 0);   // Very dark green
+const lv_color_t DisplayManager::COLOR_LATENCY_OK = lv_color_make(100, 100, 0);  // Very dark yellow
+const lv_color_t DisplayManager::COLOR_LATENCY_BAD = lv_color_make(100, 0, 0);   // Very dark red
 
 void DisplayManager::flushDisplay(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     if (tft.getStartCount() == 0) {
@@ -173,9 +173,9 @@ void DisplayManager::update(const BmsData &data) {
     if (data.latency_ms > 0) {
         lv_label_set_text_fmt(latency_label, "Latency: %dms", data.latency_ms);
 
-        lv_color_t color = data.latency_ms < 200 ? COLOR_LATENCY_GOOD :
-                          data.latency_ms < 1000 ? COLOR_LATENCY_OK :
-                          COLOR_LATENCY_BAD;
+        lv_color_t color = data.latency_ms < 200    ? COLOR_LATENCY_GOOD
+                           : data.latency_ms < 1000 ? COLOR_LATENCY_OK
+                                                    : COLOR_LATENCY_BAD;
         lv_obj_set_style_text_color(latency_label, color, 0);
     }
 
@@ -201,8 +201,8 @@ void DisplayManager::update(const BmsData &data) {
 void DisplayManager::updateConnectionState(ConnectionState state) {
     if (!connection_label) return;
 
-    const char* text = state == ConnectionState::Connected ? "Connected" : "Connecting...";
+    const char *text = state == ConnectionState::Connected ? "Connected" : "Connecting...";
     lv_label_set_text(connection_label, text);
     lv_obj_set_style_text_color(connection_label,
-        state == ConnectionState::Connected ? COLOR_CONNECTED : COLOR_CONNECTING, 0);
+                                state == ConnectionState::Connected ? COLOR_CONNECTED : COLOR_CONNECTING, 0);
 }

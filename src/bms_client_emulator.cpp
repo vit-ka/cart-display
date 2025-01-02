@@ -1,10 +1,10 @@
 #include "bms_client_emulator.h"
+
 #include <Arduino.h>
 #include <math.h>
 
-
 // Simulation parameters
-static constexpr float MAX_CURRENT = 300.0f;  // ±300A max
+static constexpr float MAX_CURRENT = 300.0f;       // ±300A max
 static constexpr float TYPICAL_CURRENT = -200.0f;  // Typical driving current
 static constexpr float MIN_VOLTAGE = 42.0f;
 static constexpr float MAX_VOLTAGE = 54.6f;
@@ -15,7 +15,6 @@ static constexpr uint32_t DISCONNECT_DURATION = 2000;   // 2 seconds
 
 // Add to top of file with other constants
 static constexpr float OUTLET_CHARGING_CURRENT = 9.0f;  // 9A constant charging
-
 
 void BmsClientEmulator::setup() {
     lastUpdate = millis();
@@ -68,7 +67,7 @@ void BmsClientEmulator::simulateBatteryBehavior() {
         regenStartTime = now;
         baseWave = 0.3f;  // Strong initial regen
     } else if (inRegenState) {
-        if (now - regenStartTime < 2000) {  // Maintain regen for 2 seconds
+        if (now - regenStartTime < 2000) {                       // Maintain regen for 2 seconds
             baseWave = 0.3f - (now - regenStartTime) / 8000.0f;  // Gradually decrease regen
         } else {
             inRegenState = false;
@@ -102,22 +101,20 @@ void BmsClientEmulator::simulateBatteryBehavior() {
 
     // More realistic latency simulation
     static uint32_t base_latency = 100;
-    if (random(100) < 10) {  // 10% chance to spike
+    if (random(100) < 10) {                // 10% chance to spike
         base_latency = random(200, 2000);  // Occasional big spikes
-    } else if (random(100) < 30) {  // 30% chance to drift
+    } else if (random(100) < 30) {         // 30% chance to drift
         base_latency += random(-20, 20);
         base_latency = constrain(base_latency, 50, 500);
     }
     uint32_t latency = base_latency + random(20);  // Add jitter
 
     if (dataCallback) {
-        BmsData data = {
-            .voltage = voltage,
-            .current = current,
-            .power = voltage * current,
-            .soc = static_cast<uint16_t>(soc),
-            .latency_ms = latency
-        };
+        BmsData data = {.voltage = voltage,
+                        .current = current,
+                        .power = voltage * current,
+                        .soc = static_cast<uint16_t>(soc),
+                        .latency_ms = latency};
         dataCallback(data);
     }
 }

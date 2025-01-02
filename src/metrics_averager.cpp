@@ -3,7 +3,7 @@
 #include <algorithm>
 
 namespace {
-    static constexpr uint32_t kAverageWindowMs = 1000;
+static constexpr uint32_t kAverageWindowMs = 1000;
 }
 
 void MetricsAverager::addMetrics(const BmsData& data, uint32_t timestamp) {
