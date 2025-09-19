@@ -1,9 +1,10 @@
 #include <Arduino.h>
-#include "display_manager.h"
-#include "metrics_averager.h"
+
 #include "charge_estimator.h"
 #include "charging_log.h"
 #include "config.h"
+#include "display_manager.h"
+#include "metrics_averager.h"
 
 #ifdef USE_EMULATOR
 #include "bms_client_emulator.h"
@@ -30,7 +31,7 @@ void onBmsData(const BmsData& rawData) {
 }
 
 void onConnectionStatus(ConnectionState status) {
-    switch(status) {
+    switch (status) {
         case ConnectionState::Connecting:
             Serial.println("Connecting to BMS...");
             DisplayManager::instance().updateConnectionState(ConnectionState::Connecting);
