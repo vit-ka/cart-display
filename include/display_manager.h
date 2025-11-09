@@ -31,14 +31,14 @@ class DisplayManager {
     LGFX tft;
 
     void setupLabels();
-    void setupPowerBar();
-    void updatePowerBar(const BmsData &data);
+    void setupSocBar();
+    void updateSocBar(const BmsData &data);
 
     // UI Elements
     lv_obj_t *metrics_label = nullptr;
-    lv_obj_t *soc_label = nullptr;
-    lv_obj_t *power_bar = nullptr;
-    lv_obj_t *power_bar_label = nullptr;
+    lv_obj_t *soc_bar = nullptr;
+    lv_obj_t *soc_bar_label = nullptr;
+    lv_obj_t *power_label = nullptr;
     lv_obj_t *connection_label = nullptr;
     lv_obj_t *latency_label = nullptr;
     lv_obj_t *time_to_full_label = nullptr;

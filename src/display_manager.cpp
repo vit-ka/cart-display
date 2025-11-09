@@ -1,8 +1,5 @@
 #include "display_manager.h"
 
-static constexpr int16_t POWER_BAR_DISCHARGING_MAX = 4000;  // 4kW
-static constexpr int16_t POWER_BAR_CHARGING_MAX = 1000;     // 1kW
-
 // Static color definitions
 const lv_color_t DisplayManager::COLOR_CONNECTED = lv_color_make(0, 100, 0);     // Very dark green
 const lv_color_t DisplayManager::COLOR_CONNECTING = lv_color_make(120, 120, 0);  // Very dark yellow
@@ -51,19 +48,19 @@ void DisplayManager::setup() {
 
 void DisplayManager::setupLabels() {
     metrics_label = lv_label_create(lv_scr_act());
-    soc_label = lv_label_create(lv_scr_act());
+    power_label = lv_label_create(lv_scr_act());
     connection_label = lv_label_create(lv_scr_act());
     latency_label = lv_label_create(lv_scr_act());
     time_to_full_label = lv_label_create(lv_scr_act());
 
     lv_label_set_text(metrics_label, "0.0V  |  0.0A");
-    lv_label_set_text(soc_label, "Charge: --%");
+    lv_label_set_text(power_label, "Power: --%");
     lv_label_set_text(connection_label, "Waiting...");
     lv_label_set_text(latency_label, "Latency: --ms");
     lv_label_set_text(time_to_full_label, "Full in --h --m");
 
     lv_obj_set_style_text_font(metrics_label, &lv_font_dejavu_16_persian_hebrew, 0);
-    lv_obj_set_style_text_font(soc_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(power_label, &lv_font_montserrat_20, 0);
     lv_obj_set_style_text_font(connection_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_font(latency_label, &lv_font_montserrat_10, 0);
     lv_obj_set_style_text_font(time_to_full_label, &lv_font_montserrat_10, 0);
@@ -73,8 +70,8 @@ void DisplayManager::setupLabels() {
     lv_obj_set_style_text_color(time_to_full_label, lv_color_make(0, 120, 0), 0);
 
     lv_obj_align(metrics_label, LV_ALIGN_CENTER, 0, -70);
-    setupPowerBar();
-    lv_obj_align(soc_label, LV_ALIGN_CENTER, 0, -35);
+    setupSocBar();
+    lv_obj_align(power_label, LV_ALIGN_CENTER, 0, -35);
     lv_obj_align(time_to_full_label, LV_ALIGN_CENTER, 0, -15);
     lv_obj_align(connection_label, LV_ALIGN_CENTER, 0, 80);
     lv_obj_align(latency_label, LV_ALIGN_CENTER, 0, 100);
@@ -82,7 +79,7 @@ void DisplayManager::setupLabels() {
     lv_obj_add_flag(time_to_full_label, LV_OBJ_FLAG_HIDDEN);
 }
 
-void DisplayManager::setupPowerBar() {
+void DisplayManager::setupSocBar() {
     // Create container for power bar and label
     lv_obj_t *cont = lv_obj_create(lv_scr_act());
     lv_obj_set_size(cont, 220, 40);
@@ -93,62 +90,52 @@ void DisplayManager::setupPowerBar() {
     lv_obj_set_style_pad_all(cont, 0, 0);
 
     // Create power bar
-    power_bar = lv_bar_create(cont);
-    lv_obj_set_size(power_bar, 220, 40);
-    lv_obj_align(power_bar, LV_ALIGN_CENTER, 0, 00);
-    lv_bar_set_value(power_bar, 0, LV_ANIM_ON);
+    soc_bar = lv_bar_create(cont);
+    lv_obj_set_size(soc_bar, 220, 40);
+    lv_obj_align(soc_bar, LV_ALIGN_CENTER, 0, 00);
+    lv_bar_set_value(soc_bar, 0, LV_ANIM_ON);
 
     // Style for background
-    lv_obj_set_style_bg_color(power_bar, lv_color_make(40, 40, 40), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(soc_bar, lv_color_make(40, 40, 40), LV_PART_MAIN);
 
     // Style for indicator
-    lv_obj_set_style_bg_color(power_bar, lv_color_make(0, 150, 0), LV_PART_INDICATOR);
-    lv_obj_set_style_anim_time(power_bar, 400, LV_PART_INDICATOR);  // Animation duration
+    lv_obj_set_style_bg_color(soc_bar, lv_color_make(0, 150, 0), LV_PART_INDICATOR);
+    lv_obj_set_style_anim_time(soc_bar, 400, LV_PART_INDICATOR);  // Animation duration
 
     // Create label that matches bar size
-    power_bar_label = lv_label_create(cont);
-    lv_obj_set_style_text_font(power_bar_label, &lv_font_montserrat_20, 0);
-    lv_obj_set_size(power_bar_label, 220, 40);
-    lv_obj_set_style_text_align(power_bar_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(power_bar_label, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_pad_ver(power_bar_label, 8, 0);
-    lv_label_set_text(power_bar_label, "0 W");
+    soc_bar_label = lv_label_create(cont);
+    lv_obj_set_style_text_font(soc_bar_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_size(soc_bar_label, 220, 40);
+    lv_obj_set_style_text_align(soc_bar_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(soc_bar_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_pad_ver(soc_bar_label, 8, 0);
+    lv_label_set_text(soc_bar_label, "Charge: --%");
+    lv_bar_set_range(soc_bar, 0, 100);
 }
 
-void DisplayManager::updatePowerBar(const BmsData &data) {
+void DisplayManager::updateSocBar(const BmsData &data) {
     lv_color_t barColor, barTextColor;
-    // Adjust range and value based on charging/discharging.
-    if (data.power > 0) {
-        // Charging mode
-        lv_bar_set_range(power_bar, 0, POWER_BAR_CHARGING_MAX);
-        lv_bar_set_value(power_bar, data.power, LV_ANIM_ON);
-        barColor = lv_color_make(0, 150, 0);  // Green for charging
+    if (data.soc > 70) {
+        lv_bar_set_value(soc_bar, data.soc, LV_ANIM_ON);
+        barColor = lv_color_make(0, 150, 0);  // Green
         barTextColor = lv_color_white();
-    } else if (data.power < 0) {
-        // Discharging mode
-        lv_bar_set_range(power_bar, 0, POWER_BAR_DISCHARGING_MAX);
-        lv_bar_set_value(power_bar, -data.power, LV_ANIM_ON);
-        barColor = lv_color_make(150, 0, 0);  // Red for discharging
+    } else if (data.soc < 30) {
+        lv_bar_set_value(soc_bar, data.soc, LV_ANIM_ON);
+        barColor = lv_color_make(150, 0, 0);  // Red
         barTextColor = lv_color_white();
     } else {
-        // Zero power: show minimal bar
-        lv_bar_set_range(power_bar, 0, 0);
-        lv_bar_set_value(power_bar, data.power, LV_ANIM_ON);
-        barColor = lv_color_make(100, 100, 100);  // Grey for no power
-        barTextColor = lv_color_make(100, 100, 100);
+        lv_bar_set_value(soc_bar, data.soc, LV_ANIM_ON);
+        barColor = lv_color_make(100, 100, 100);  // Grey
+        barTextColor = lv_color_white();
     }
 
-    lv_obj_set_style_bg_color(power_bar, barColor, LV_PART_INDICATOR);
-    lv_obj_set_style_text_color(power_bar_label, barTextColor, 0);
+    lv_obj_set_style_bg_color(soc_bar, barColor, LV_PART_INDICATOR);
+    lv_obj_set_style_text_color(soc_bar_label, barTextColor, 0);
 
     // Update text
     static char buf[32];
-    if (abs(data.power) >= 1000) {
-        snprintf(buf, sizeof(buf), "%.2f kW", data.power / 1000);
-    } else {
-        snprintf(buf, sizeof(buf), "%.0f W", data.power);
-    }
-    lv_label_set_text(power_bar_label, buf);
+    snprintf(buf, sizeof(buf), "Charge: %d%%", data.soc);
+    lv_label_set_text(soc_bar_label, buf);
 }
 
 void DisplayManager::update(const BmsData &data) {
@@ -156,17 +143,21 @@ void DisplayManager::update(const BmsData &data) {
     snprintf(buf, sizeof(buf), "%5.1fV  |  %5.1fA", data.voltage, data.current);
     lv_label_set_text(metrics_label, buf);
 
-    updatePowerBar(data);
+    updateSocBar(data);
 
-    snprintf(buf, sizeof(buf), "Charge: %d%%", data.soc);
-    lv_label_set_text(soc_label, buf);
-
-    if (data.soc <= 15) {
-        lv_obj_set_style_text_color(soc_label, lv_color_make(255, 0, 0), 0);
-    } else if (data.soc >= 80) {
-        lv_obj_set_style_text_color(soc_label, lv_color_make(0, 255, 0), 0);
+    static char power_buf[32];
+    if (abs(data.power) >= 1000) {
+        snprintf(power_buf, sizeof(power_buf), "%.2f kW", data.power / 1000);
     } else {
-        lv_obj_set_style_text_color(soc_label, lv_color_white(), 0);
+        snprintf(power_buf, sizeof(power_buf), "%.0f W", data.power);
+    }
+    snprintf(buf, sizeof(buf), "Power: %s", power_buf);
+    lv_label_set_text(power_label, buf);
+
+    if (data.power < 0) {
+        lv_obj_set_style_text_color(power_label, lv_color_make(255, 0, 0), 0);
+    } else {
+        lv_obj_set_style_text_color(power_label, lv_color_make(0, 255, 0), 0);
     }
 
     // Update connection status with latency
