@@ -60,7 +60,7 @@ void DisplayManager::setupLabels() {
     lv_label_set_text(time_to_full_label, "Full in --h --m");
 
     lv_obj_set_style_text_font(metrics_label, &lv_font_dejavu_16_persian_hebrew, 0);
-    lv_obj_set_style_text_font(power_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(power_label, &lv_font_dejavu_16_persian_hebrew, 0);
     lv_obj_set_style_text_font(connection_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_font(latency_label, &lv_font_montserrat_10, 0);
     lv_obj_set_style_text_font(time_to_full_label, &lv_font_montserrat_10, 0);
@@ -156,6 +156,8 @@ void DisplayManager::update(const BmsData &data) {
 
     if (data.power < 0) {
         lv_obj_set_style_text_color(power_label, lv_color_make(255, 0, 0), 0);
+    } else if (data.power == 0) {
+        lv_obj_set_style_text_color(power_label, lv_color_make(100, 100, 100), 0);
     } else {
         lv_obj_set_style_text_color(power_label, lv_color_make(0, 255, 0), 0);
     }
